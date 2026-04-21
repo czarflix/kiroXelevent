@@ -19,6 +19,6 @@
 - [x] 17. Persist live runs, turns, results, failures, audio artifacts, and fix exports to Supabase
 - [x] 18. Complete WebSocket audio probe path with signed URL, caller audio chunk, ping/pong, event capture, and conversation-audio fetch
 - [x] 19. Run ElevenLabs simulation, replay/audio, and conversation-audio smoke checks with a key that has the required permissions
-- [ ] 20. Deploy to Vercel and verify public `/demo`, authenticated `/app`, and `/api/health`
+- [x] 20. Deploy to Vercel and verify public `/demo`, authenticated `/app`, and `/api/health`
 - [ ] 21. Record final 60-90 second submission video from production
 - [ ] 22. Post on X, LinkedIn, Instagram, and TikTok

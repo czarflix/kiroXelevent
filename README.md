@@ -105,6 +105,18 @@ pnpm mcp
 
 `pnpm agent:ensure` creates or reuses a real ElevenLabs agent named `VoiceGauntlet RefundBot` and writes its agent ID to `apps/web/.env.local`. `pnpm demo:audio` regenerates the public proof replay with ElevenLabs Text to Dialogue and writes a provider proof manifest next to the MP3. `pnpm smoke:elevenlabs:ws` proves signed URL creation, a live WebSocket session, agent response audio chunks, and conversation metadata fetch.
 
+## Production Proof
+
+Production URL: [https://kiro-x-elevent.vercel.app](https://kiro-x-elevent.vercel.app)
+
+Verified on 2026-04-22 IST:
+
+- `/api/health` reports ElevenLabs, Groq, and Supabase configured.
+- Public `/demo` passes desktop and mobile Playwright checks, including generated audio playback metadata.
+- Public demo audio serves as `audio/mpeg` and returns nonzero bytes.
+- Authenticated `/app` API probe passes against production: real ElevenLabs simulation, Supabase run persistence, generated replay audio, WebSocket probe with conversation ID, and persisted Kiro task export.
+- Local gates pass: `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm security:scan`, and `CI=1 pnpm --filter @voicegauntlet/web test:e2e`.
+
 ## Demo Script
 
 Target length: 60-90 seconds.
