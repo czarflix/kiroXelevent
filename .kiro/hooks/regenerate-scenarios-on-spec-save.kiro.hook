@@ -11,6 +11,6 @@
   },
   "then": {
     "type": "askAgent",
-    "prompt": "A Kiro requirements file changed. Run the VoiceGauntlet parser against the edited requirements, regenerate adversarial scenario previews, and report requirement IDs with lint issues. Do not commit secrets or call paid APIs unless explicitly requested."
+    "prompt": "A Kiro requirements file changed. Run the VoiceGauntlet parser against the edited requirements, regenerate adversarial scenario previews, and report requirement IDs with lint issues. Use deterministic generation unless Groq is explicitly configured, and never commit secrets or imply generated replay is a recorded call."
   }
 }

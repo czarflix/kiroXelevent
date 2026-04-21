@@ -1,6 +1,6 @@
 # Design Document: RefundBot Demo
 
-RefundBot is intentionally small and auditable. It exists to create a believable failure that VoiceGauntlet can expose, replay, shrink, and fix.
+RefundBot is intentionally small and auditable. It exists to create a believable failure that VoiceGauntlet can expose, prove with truthful audio evidence, shrink, and fix.
 
 ## Behavior
 
@@ -11,4 +11,4 @@ RefundBot is intentionally small and auditable. It exists to create a believable
 
 ## Demo Failure
 
-The seeded failure shows RefundBot discussing order details before verification and claiming a refund succeeded after a tool timeout. VoiceGauntlet maps that failure to `REQ-002`, shrinks it, and exports fix tasks.
+The demo failure shows RefundBot discussing order details before verification and claiming a refund succeeded after a tool timeout. VoiceGauntlet maps that failure to `REQ-002`, shrinks it, plays either recorded call audio or a clearly labeled generated replay, and exports fix tasks.

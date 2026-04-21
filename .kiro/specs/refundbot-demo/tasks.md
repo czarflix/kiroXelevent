@@ -5,3 +5,5 @@
 - [x] 3. Seed fixed green transcript
 - [x] 4. Map failures to VoiceGauntlet criteria
 - [ ] 5. Create or connect a real ElevenLabs RefundBot agent for live simulation
+- [ ] 6. Generate hearable demo evidence and label it as recorded call or generated replay
+- [ ] 7. Verify green rerun passes the evaluator after hardening

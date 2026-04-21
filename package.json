@@ -2,7 +2,7 @@
   "name": "voicegauntlet",
   "version": "0.1.0",
   "private": true,
-  "description": "Kiro-ready QA and red-team lab for ElevenLabs voice agents.",
+  "description": "Kiro-built QA and red-team lab for ElevenLabs voice agents.",
   "packageManager": "pnpm@10.27.0",
   "scripts": {
     "dev": "pnpm --filter @voicegauntlet/web dev",
@@ -12,6 +12,7 @@
     "lint": "pnpm -r lint",
     "smoke:elevenlabs": "node scripts/smoke-elevenlabs.mjs",
     "smoke:openai": "node scripts/smoke-openai.mjs",
+    "demo:audio": "node scripts/generate-demo-replay.mjs",
     "security:scan": "node scripts/security-scan.mjs",
     "mcp": "pnpm --filter @voicegauntlet/mcp dev"
   },

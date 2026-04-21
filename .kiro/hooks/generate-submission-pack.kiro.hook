@@ -1,7 +1,7 @@
 {
   "enabled": true,
   "name": "Generate Submission Pack",
-  "description": "Creates the final submission checklist, README proof points, and demo script summary.",
+  "description": "Creates the final submission checklist, README proof points, demo script, and social captions.",
   "version": "1",
   "when": {
     "type": "userTriggered",
@@ -13,6 +13,6 @@
   },
   "then": {
     "type": "askAgent",
-    "prompt": "Prepare the ElevenHacks submission pack: verify README, root .kiro, license, run instructions, Kiro usage write-up, demo script, social captions, and no-secret hygiene. Keep the output concise and submission-ready."
+    "prompt": "Prepare the ElevenHacks submission pack: verify README, root .kiro, license, run instructions, Kiro usage write-up, local MCP setup, truthful ElevenLabs simulation/audio labels, demo script, social captions, and no-secret hygiene. Keep the output concise and submission-ready."
   }
 }

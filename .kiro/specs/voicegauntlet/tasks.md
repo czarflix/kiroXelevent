@@ -8,9 +8,14 @@
 - [x] 6. Implement Next.js demo UI and API routes
 - [x] 7. Implement MCP server tools
 - [x] 8. Add Supabase schema, RLS, and storage buckets
-- [ ] 9. Run package install, tests, typecheck, and build
-- [ ] 10. Apply Supabase migration to linked project
-- [ ] 11. Run ElevenLabs and OpenAI smoke checks
-- [ ] 12. Run Playwright browser proof
-- [ ] 13. Deploy to Vercel and add production auth callback
-- [ ] 14. Record final 60-90 second submission video
+- [x] 9. Replace fake run/replay UI states with API-backed state and truthful source labels
+- [x] 10. Fix evaluator false positives and prove seeded red and green runs are actually red and green
+- [x] 11. Add hearable audio evidence: recorded ElevenLabs call when available, generated replay when not
+- [x] 12. Replace dense dark cockpit with minimalist staged UI flow
+- [x] 13. Add Groq server-side refinement with cache, concurrency 1, 429 retry, and deterministic fallback
+- [x] 14. Verify local MCP setup from `.kiro/settings/mcp.json` using `pnpm mcp`
+- [x] 15. Run package install, tests, typecheck, build, security scan, and browser proof
+- [ ] 16. Run ElevenLabs simulation, replay/audio, and conversation-audio smoke checks
+- [ ] 17. Deploy to Vercel and verify public `/demo`, authenticated `/app`, and `/api/health`
+- [ ] 18. Record final 60-90 second submission video from production
+- [ ] 19. Post on X, LinkedIn, Instagram, and TikTok

@@ -1,23 +1,65 @@
 # VoiceGauntlet
 
-VoiceGauntlet is a Kiro-ready QA and red-team lab for ElevenLabs voice agents. It reads Kiro specs, generates adversarial customer scenarios, runs simulations, maps failures to requirement IDs, replays failures as audio, shrinks failing transcripts, and exports Kiro hardening tasks.
+VoiceGauntlet is a **Kiro-built** QA and red-team lab for ElevenLabs voice agents. It reads Kiro specs, generates adversarial customer scenarios, runs real ElevenLabs agent tests, maps failures to requirement IDs, produces hearable evidence, shrinks failures, and exports Kiro hardening tasks.
 
-[![Add to Kiro](https://kiro.dev/images/add-to-kiro.svg)](https://kiro.dev/launch/mcp/add?name=voicegauntlet&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40voicegauntlet%2Fmcp%22%5D%2C%22env%22%3A%7B%22VOICEGAUNTLET_SITE_URL%22%3A%22%24%7BVOICEGAUNTLET_SITE_URL%7D%22%2C%22VOICEGAUNTLET_API_KEY%22%3A%22%24%7BVOICEGAUNTLET_API_KEY%7D%22%7D%2C%22disabled%22%3Afalse%2C%22autoApprove%22%3A%5B%5D%7D)
+> Hook: "I built 20 angry AI customers that attack your ElevenLabs voice agent and break it before real users do."
 
-## Why It Exists
+## What It Does
 
-Normal voice-agent demos prove the happy path. VoiceGauntlet attacks the unhappy paths before real customers do: angry refunds, duplicate charges, prompt injection, privacy boundaries, tool outages, bilingual calls, and escalation pressure.
+Normal voice-agent demos prove the happy path. VoiceGauntlet attacks the paths that break production agents: angry refunds, duplicate charges, prompt injection, privacy boundaries, tool outages, bilingual callers, and escalation pressure.
+
+The final product loop is:
+
+```text
+Kiro spec -> adversarial scenarios -> ElevenLabs simulation -> red failure
+-> hear audio evidence -> shrink failure -> export Kiro task -> rerun green
+```
+
+## Truth Model
+
+VoiceGauntlet keeps runtime labels exact:
+
+- **ElevenLabs simulation** means `simulate-conversation`: real agent testing with text transcript, tool calls, and analysis. It is not an audio call.
+- **Recorded ElevenLabs call** means actual conversation audio exists and is backed by ElevenLabs conversation/audio metadata.
+- **Generated replay** means two-speaker audio created from a real transcript. The live replay route uses ElevenLabs Text to Dialogue when a valid key is configured. It is hearable evidence, but not a recorded call.
+- **Demo fixture** means a preverified public proof artifact for judges, not a live provider run.
+
+No fake run buttons, no fake waveform, and no provider failure disguised as success belong in the final submission surface.
 
 ## Kiro Usage
 
-The repository includes a root `.kiro` directory with:
+This repo is built with Kiro for ElevenHacks Hack #5. The root `.kiro` directory is part of the product, not decoration:
 
-- specs: `voicegauntlet`, `refundbot-demo`, and `agent-hardening`
-- steering: product, tech, structure, safety, demo, ElevenLabs API, and UI guidance
-- hooks: scenario regeneration, smoke-suite runs, security scanning, and submission-pack generation
-- MCP settings for the local VoiceGauntlet MCP server
+- `.kiro/specs/voicegauntlet`: product requirements, design, and implementation tasks.
+- `.kiro/specs/refundbot-demo`: demo agent requirements that generate adversarial scenarios.
+- `.kiro/specs/agent-hardening`: exported fix tasks from failed runs.
+- `.kiro/steering`: product, tech, safety, UI, demo, and ElevenLabs API guidance.
+- `.kiro/hooks`: spec-save scenario regeneration, agent-config smoke tests, security scan, and submission pack generation.
+- `.kiro/settings/mcp.json`: local MCP server configuration for Kiro.
+- **ElevenLabs Kiro Power**: used as the Kiro-side API guidance layer for simulation, Text to Dialogue, Agent WebSockets, and conversation audio behavior.
 
-The project was authored with Codex and structured to match Kiro's published conventions. A small real Kiro validation pass should be recorded before final submission if credits are available.
+## Local MCP Setup
+
+The MCP package is private to this repo, so the README does not point to an unpublished `npx @voicegauntlet/mcp` package. Use the local workspace server instead:
+
+```bash
+pnpm install
+pnpm mcp
+```
+
+Kiro can use the checked-in `.kiro/settings/mcp.json`, which runs:
+
+```bash
+pnpm mcp
+```
+
+Available MCP tools:
+
+- `voicegauntlet.generate_suite_from_spec`
+- `voicegauntlet.run_smoke_suite`
+- `voicegauntlet.shrink_failure`
+- `voicegauntlet.export_fix_tasks`
+- `voicegauntlet.get_run`
 
 ## Quick Start
 
@@ -27,21 +69,23 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Open `http://localhost:3000/demo` for the public judge demo.
+Open `http://localhost:3000/demo` for the public judge demo and `http://localhost:3000/app` for authenticated live runs.
 
 ## Environment
 
-Required for real runs:
+Required for live provider-backed runs:
 
 - `ELEVENLABS_API_KEY`
 - `ELEVENLABS_AGENT_ID`
-- `OPENAI_API_KEY`
+- `GROQ_API_KEY`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `SUPABASE_DB_URL`
 
-The demo route works with seeded data even before live API keys are configured.
+Groq is used carefully because free-tier limits can rate-limit. Scenario refinement must cache by spec hash, run with concurrency `1`, retry `429` once when retry metadata is available, and fall back to deterministic templates.
+
+OpenAI is optional legacy fallback only. Do not rely on it for the final demo path.
 
 ## Commands
 
@@ -49,16 +93,51 @@ The demo route works with seeded data even before live API keys are configured.
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm demo:audio
 pnpm smoke:elevenlabs
-pnpm smoke:openai
 pnpm security:scan
+pnpm mcp
 ```
 
-## Submission Script
+## Demo Script
 
-Hook: “I built 20 angry AI customers that attack your ElevenLabs voice agent before real users do.”
+Target length: 60-90 seconds.
 
-Show: Kiro spec import, gauntlet generation, red failure, audio replay, minimized failing transcript, exported Kiro tasks, rerun green, and the VoiceGauntlet Certified badge.
+1. Say the hook in the first five seconds.
+2. Show `.kiro/specs/refundbot-demo/requirements.md`.
+3. Generate or open adversarial scenarios mapped to requirement IDs.
+4. Run the gauntlet and show a red failure.
+5. Play the hearable evidence and show whether it is a recorded call or generated replay.
+6. Show the minimized failing transcript.
+7. Export `.kiro/specs/agent-hardening/tasks.md`.
+8. Rerun green and show VoiceGauntlet Certified.
+
+## Social Caption
+
+```text
+I built VoiceGauntlet for #ElevenHacks #CodeWithKiro.
+
+20 angry AI customers attack your ElevenLabs voice agent before real users do.
+
+It reads your Kiro spec, generates adversarial calls, runs ElevenLabs tests, plays audio evidence, shrinks failures, and exports Kiro fix tasks.
+
+@kirodotdev @elevenlabsio
+```
+
+Post on X, LinkedIn, Instagram, and TikTok.
+
+## Submission Checklist
+
+- Public repo with MIT license.
+- Root `.kiro` is tracked.
+- Public demo works without login.
+- Live mode works with configured provider keys.
+- At least one failed run has hearable two-sided evidence.
+- Audio labels are truthful: simulation, recorded call, generated replay, or demo fixture.
+- Generated replay is never called a recorded call.
+- Green rerun actually passes the evaluator.
+- No secrets are committed, logged, screenshotted, or bundled into browser code.
+- Final video is public, 60-90 seconds, and shows the exact working app behavior.
 
 ## License
 

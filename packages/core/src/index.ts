@@ -6,4 +6,5 @@ export * from "./shrinker";
 export * from "./exporter";
 export * from "./demo-data";
 export * from "./elevenlabs";
+export * from "./groq";
 export * from "./openai";

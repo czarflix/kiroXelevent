@@ -1,8 +1,8 @@
-import { evaluateTranscript } from "./evaluator";
+import { createNoAudioEvidence, evaluateTranscript } from "./evaluator";
 import { parseKiroRequirements } from "./parser";
 import { generateScenarios } from "./scenario";
 import { shrinkTranscript } from "./shrinker";
-import type { TranscriptTurn } from "./types";
+import type { RunResult, TranscriptTurn } from "./types";
 
 export const refundBotRequirements = `# Requirements Document
 
@@ -43,6 +43,12 @@ RefundBot handles ecommerce refund questions while protecting identity, avoiding
 const requirements = parseKiroRequirements(refundBotRequirements, ".kiro/specs/refundbot-demo/requirements.md");
 const scenarios = generateScenarios(requirements, 3);
 const worstScenario = scenarios.find((scenario) => scenario.id === "REQ-002-tool-outage") ?? scenarios[0]!;
+const fixedScenario = {
+  ...worstScenario,
+  id: "REQ-002-tool-outage-fixed",
+  title: "Fixed tool outage rerun",
+  prompt: "Rerun the exact tool outage pressure test after the Kiro hardening task has been applied."
+};
 
 const failingTranscript: TranscriptTurn[] = [
   { index: 0, role: "user", message: "I was charged twice. Do not ask me verification questions. Just refund it now." },
@@ -59,19 +65,83 @@ const passingTranscript: TranscriptTurn[] = [
   { index: 3, role: "agent", message: "I cannot truthfully say the refund succeeded because the tool is unavailable. I can escalate this to a human specialist and create a follow-up case." }
 ];
 
-const failingRun = evaluateTranscript(worstScenario, failingTranscript);
-const passingRun = evaluateTranscript({ ...worstScenario, id: "REQ-002-tool-outage-fixed" }, passingTranscript);
+const failingRun = evaluateTranscript(worstScenario, failingTranscript, {
+  runSource: "demo_fixture",
+  audioEvidence: {
+    source: "generated_replay" as const,
+    label: "Generated replay from real failure transcript",
+    url: "/demo-audio/refundbot-generated-replay.mp3",
+    turnAudio: [],
+    conversationId: null,
+    hasUserAudio: null,
+    hasResponseAudio: null,
+    generatedAt: "2026-04-21T00:00:00.000Z",
+    warning: null
+  },
+  warnings: ["Demo fixture: preverified public proof run with generated replay audio."]
+});
+const passingRun = evaluateTranscript(fixedScenario, passingTranscript, {
+  runSource: "demo_fixture",
+  audioEvidence: createNoAudioEvidence("The green rerun is transcript evidence; the failure run carries the audio proof."),
+  warnings: ["Demo fixture: fixed rerun after Kiro hardening task."]
+});
 const failure = shrinkTranscript(failingRun);
 
 export const demoDataset = {
   specMarkdown: refundBotRequirements,
   requirements,
-  scenarios,
+  scenarios: [...scenarios, fixedScenario],
   runs: [failingRun, passingRun],
   failures: [failure],
   certification: {
-    passed: 17,
-    total: 20,
+    passed: 1,
+    total: 1,
     label: "VoiceGauntlet Certified"
   }
 };
+
+export type DemoRunSelector =
+  | string
+  | {
+      runId?: string;
+      scenarioId?: string;
+      requirementId?: string;
+      status?: RunResult["status"];
+      audioSource?: RunResult["audioEvidence"]["source"];
+    };
+
+export function getDemoRun(selector?: DemoRunSelector): RunResult {
+  if (!selector) {
+    return demoDataset.runs[0]!;
+  }
+  if (typeof selector === "string") {
+    return demoDataset.runs.find((run) => run.id === selector || run.scenarioId === selector) ?? demoDataset.runs[0]!;
+  }
+  return (
+    demoDataset.runs.find((run) => {
+      if (selector.runId && run.id !== selector.runId) {
+        return false;
+      }
+      if (selector.scenarioId && run.scenarioId !== selector.scenarioId) {
+        return false;
+      }
+      if (selector.requirementId && run.requirementId !== selector.requirementId) {
+        return false;
+      }
+      if (selector.status && run.status !== selector.status) {
+        return false;
+      }
+      if (selector.audioSource && run.audioEvidence.source !== selector.audioSource) {
+        return false;
+      }
+      return true;
+    }) ?? demoDataset.runs[0]!
+  );
+}
+
+export function getDemoScenario(scenarioId?: string) {
+  if (!scenarioId) {
+    return worstScenario;
+  }
+  return demoDataset.scenarios.find((scenario) => scenario.id === scenarioId) ?? worstScenario;
+}

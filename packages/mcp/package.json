@@ -1,11 +1,9 @@
 {
   "name": "@voicegauntlet/mcp",
   "version": "0.1.0",
+  "description": "Local Kiro MCP server for VoiceGauntlet. Private to this repo; run with pnpm mcp.",
   "type": "module",
   "private": true,
-  "bin": {
-    "voicegauntlet-mcp": "./src/server.ts"
-  },
   "scripts": {
     "dev": "tsx src/server.ts",
     "build": "tsc -p tsconfig.json --noEmit",

@@ -2,7 +2,7 @@
 
 ## Introduction
 
-VoiceGauntlet is a QA and red-team lab for ElevenLabs voice agents. It imports Kiro requirements, generates adversarial customer scenarios, runs ElevenLabs simulations, maps results back to requirement IDs, replays failures, shrinks failures, and exports Kiro fix tasks.
+VoiceGauntlet is a Kiro-built QA and red-team lab for ElevenLabs voice agents. It imports Kiro requirements, generates adversarial customer scenarios, runs ElevenLabs simulations, maps results back to requirement IDs, produces truthful audio evidence, shrinks failures, and exports Kiro fix tasks.
 
 ## Requirements
 
@@ -33,18 +33,20 @@ VoiceGauntlet is a QA and red-team lab for ElevenLabs voice agents. It imports K
 #### Acceptance Criteria
 
 1. WHEN an ElevenLabs agent ID and API key are configured, THE SYSTEM SHALL run `simulate-conversation` for selected scenarios
-2. WHEN simulation results return, THE SYSTEM SHALL persist transcript turns, criteria results, tool calls, score, and mapped requirement ID
-3. WHEN ElevenLabs is unavailable, THE SYSTEM SHALL show a recoverable error and preserve the seeded demo
+2. WHEN simulation results return, THE SYSTEM SHALL persist transcript turns, criteria results, tool calls, score, mapped requirement ID, and source label `ElevenLabs simulation`
+3. WHEN simulation results are displayed, THE SYSTEM SHALL not imply that `simulate-conversation` produced recorded audio
+4. WHEN ElevenLabs is unavailable, THE SYSTEM SHALL show a recoverable error and preserve the seeded demo without disguising provider failure as live success
 
-### Requirement 4: Failure Replay
+### Requirement 4: Audio Evidence
 
 **User Story:** As a reviewer, I want to hear the worst failure, so that the problem is obvious in the demo.
 
 #### Acceptance Criteria
 
 1. WHEN a run fails, THE SYSTEM SHALL provide transcript replay for the failed conversation
-2. WHEN conversation audio is available, THE SYSTEM SHALL use stored ElevenLabs audio
-3. WHEN conversation audio is unavailable, THE SYSTEM SHALL synthesize replay audio from transcript text
+2. WHEN recorded ElevenLabs conversation audio exists, THE SYSTEM SHALL label it `Recorded ElevenLabs call`
+3. WHEN recorded conversation audio does not exist, THE SYSTEM SHALL synthesize two-speaker replay audio from the real transcript and label it `Generated replay`
+4. WHEN no audio exists, THE SYSTEM SHALL show an explicit unavailable state instead of a fake waveform
 
 ### Requirement 5: Failure Shrinking
 
@@ -65,3 +67,13 @@ VoiceGauntlet is a QA and red-team lab for ElevenLabs voice agents. It imports K
 1. WHEN failures exist, THE SYSTEM SHALL generate Kiro-style hardening tasks in Markdown
 2. WHEN tasks are generated, THE SYSTEM SHALL include requirement ID, scenario, severity, evidence, and acceptance condition
 3. WHEN all runs pass, THE SYSTEM SHALL generate a green certification result
+
+### Requirement 7: LLM Refinement With Fallback
+
+**User Story:** As a builder using free-tier LLM credits, I want scenario refinement to survive rate limits, so that the demo is not blocked by a provider outage.
+
+#### Acceptance Criteria
+
+1. WHEN Groq is configured, THE SYSTEM SHALL use it only from server-side code for low-frequency scenario refinement or evaluator rationale
+2. WHEN Groq rate-limits or fails, THE SYSTEM SHALL fall back to deterministic templates and label the fallback honestly
+3. WHEN scenario prompts are repeated, THE SYSTEM SHALL reuse cached results by spec or prompt hash where available

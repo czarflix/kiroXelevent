@@ -1,70 +1,114 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import type WaveSurfer from "wavesurfer.js";
+import { Pause, Play, Volume2 } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import type { RunResult } from "@voicegauntlet/core";
 
 export function WaveformReplay({ run }: { run: RunResult }) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const waveRef = useRef<WaveSurfer | null>(null);
-  const bars = useMemo(
-    () =>
-      Array.from({ length: 72 }, (_, index) => {
-        const value = Math.sin(index * 1.7) * 18 + Math.cos(index * 0.42) * 12 + 38;
-        return Math.max(10, Math.min(72, Math.round(value)));
-      }),
-    [run.id]
-  );
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const [duration, setDuration] = useState<number | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const evidence = run.audioEvidence;
+  const audioUrl = evidence.url ?? run.audioUrl;
+  const label = useMemo(() => evidenceLabel(evidence.source), [evidence.source]);
 
-  useEffect(() => {
-    let cancelled = false;
-    const audioUrl = run.audioUrl;
-    if (!audioUrl || !containerRef.current) {
+  async function togglePlayback() {
+    const audio = audioRef.current;
+    if (!audio) {
       return;
     }
-
-    void import("wavesurfer.js").then(({ default: WaveSurferModule }) => {
-      if (cancelled || !containerRef.current) {
-        return;
+    try {
+      setError(null);
+      if (playing) {
+        audio.pause();
+        setPlaying(false);
+      } else {
+        await audio.play();
+        setPlaying(true);
       }
-      waveRef.current?.destroy();
-      waveRef.current = WaveSurferModule.create({
-        container: containerRef.current,
-        waveColor: "rgba(238,235,228,0.28)",
-        progressColor: "#c9b896",
-        cursorColor: "#eeebe4",
-        height: 96,
-        barWidth: 2,
-        barGap: 3,
-        url: audioUrl
-      });
-    });
+    } catch (playError) {
+      setPlaying(false);
+      setError(playError instanceof Error ? playError.message : "Audio playback failed.");
+    }
+  }
 
-    return () => {
-      cancelled = true;
-      waveRef.current?.destroy();
-      waveRef.current = null;
-    };
-  }, [run.audioUrl, run.id]);
-
-  if (run.audioUrl) {
-    return <div ref={containerRef} className="min-h-24 w-full" />;
+  if (!audioUrl) {
+    return (
+      <div className="audio-empty" data-testid="audio-empty">
+        <div className="audio-empty-icon">
+          <Volume2 size={18} />
+        </div>
+        <div>
+          <div className="micro-label">No Audio Evidence</div>
+          <p>{evidence.warning ?? "This result is a text simulation transcript only."}</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="flex h-24 min-w-0 items-center overflow-hidden rounded-[18px] border border-[var(--line)] bg-black/20 px-4" aria-label="Generated waveform preview">
-      <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
-        {bars.map((height, index) => (
-          <div
-            key={`${run.id}-${index}`}
-            className="w-[2px] shrink-0 rounded-full bg-[var(--accent)]/70 sm:w-[3px]"
-            style={{ height }}
-          />
-        ))}
+    <div className="audio-player" data-testid="audio-player">
+      <audio
+        ref={audioRef}
+        preload="metadata"
+        src={audioUrl}
+        onLoadedMetadata={(event) => {
+          setDuration(event.currentTarget.duration);
+          setCurrentTime(event.currentTarget.currentTime);
+        }}
+        onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
+        onEnded={() => {
+          setPlaying(false);
+          setCurrentTime(audioRef.current?.duration ?? currentTime);
+        }}
+        onError={() => {
+          setPlaying(false);
+          setError("The audio asset could not be loaded.");
+        }}
+      />
+      <button className="audio-toggle" type="button" onClick={togglePlayback} aria-label={playing ? "Pause audio evidence" : "Play audio evidence"}>
+        {playing ? <Pause size={18} /> : <Play size={18} />}
+      </button>
+      <div className="audio-meta">
+        <div className="micro-label">{label}</div>
+        <p>{evidence.label}</p>
+        <div className="audio-bar" aria-hidden="true">
+          <span style={{ width: `${audioProgress(currentTime, duration)}%` }} />
+        </div>
+        {error ? <div className="audio-error">{error}</div> : null}
       </div>
-      <div className="ml-3 shrink-0 text-right text-[10px] font-bold uppercase leading-4 tracking-[0.12em] text-[var(--muted)] sm:text-xs">
-        Transcript<br className="sm:hidden" /> replay
+      <div className="audio-duration" data-testid="audio-duration">
+        {Number.isFinite(duration ?? NaN) ? formatDuration(duration ?? 0) : "ready"}
       </div>
     </div>
   );
+}
+
+function evidenceLabel(source: RunResult["audioEvidence"]["source"]) {
+  switch (source) {
+    case "recorded_call":
+      return "Recorded ElevenLabs Call";
+    case "generated_replay":
+      return "Generated Replay";
+    case "turn_player":
+      return "Turn Player";
+    default:
+      return "Transcript Only";
+  }
+}
+
+function formatDuration(value: number) {
+  const safe = Math.max(0, Math.round(value));
+  const minutes = Math.floor(safe / 60);
+  const seconds = safe % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
+function audioProgress(currentTime: number, duration: number | null) {
+  if (!duration || !Number.isFinite(duration) || duration <= 0) {
+    return 0;
+  }
+  return Math.max(0, Math.min(100, (currentTime / duration) * 100));
 }

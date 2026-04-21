@@ -46,6 +46,32 @@ export const TranscriptTurnSchema = z.object({
 });
 export type TranscriptTurn = z.infer<typeof TranscriptTurnSchema>;
 
+export const RunSourceSchema = z.enum(["demo_fixture", "elevenlabs_simulation", "audio_probe"]);
+export type RunSource = z.infer<typeof RunSourceSchema>;
+
+export const AudioEvidenceSourceSchema = z.enum(["none", "recorded_call", "generated_replay", "turn_player"]);
+export type AudioEvidenceSource = z.infer<typeof AudioEvidenceSourceSchema>;
+
+export const AudioEvidenceSchema = z.object({
+  source: AudioEvidenceSourceSchema,
+  label: z.string(),
+  url: z.string().nullable(),
+  turnAudio: z.array(
+    z.object({
+      role: z.enum(["user", "agent"]),
+      url: z.string(),
+      label: z.string(),
+      durationSecs: z.number().optional()
+    })
+  ),
+  conversationId: z.string().nullable(),
+  hasUserAudio: z.boolean().nullable(),
+  hasResponseAudio: z.boolean().nullable(),
+  generatedAt: z.string().nullable(),
+  warning: z.string().nullable()
+});
+export type AudioEvidence = z.infer<typeof AudioEvidenceSchema>;
+
 export const RunResultSchema = z.object({
   id: z.string(),
   scenarioId: z.string(),
@@ -63,7 +89,11 @@ export const RunResultSchema = z.object({
       rationale: z.string()
     })
   ),
+  runSource: RunSourceSchema,
+  audioEvidence: AudioEvidenceSchema,
   audioUrl: z.string().nullable(),
+  providerRaw: z.unknown().optional(),
+  warnings: z.array(z.string()),
   createdAt: z.string()
 });
 export type RunResult = z.infer<typeof RunResultSchema>;

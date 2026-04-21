@@ -13,3 +13,5 @@ Every feature should answer one of these questions:
 - What did the agent say or do wrong?
 - What is the smallest reproducible failure?
 - What Kiro task fixes it?
+
+Runtime proof must be honest. A simulation transcript is not a recorded call. A generated replay is useful evidence, but it must be labeled as generated replay. Recorded-call wording is reserved for actual ElevenLabs conversation audio.
