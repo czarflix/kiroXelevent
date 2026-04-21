@@ -45,7 +45,7 @@ console.log(`user transcript ${result.userTranscript}`);
 console.log(`agent response ${result.agentResponse}`);
 console.log(`agent audio bytes ${result.agentAudioBytes}`);
 
-if (!result.opened || !result.conversationId || !result.agentResponse) {
+if (!result.opened || !result.conversationId || !result.agentResponse || result.agentAudioBytes <= 0) {
   process.exit(1);
 }
 

@@ -1,4 +1,4 @@
-import { createDialogueReplay, demoDataset, type TranscriptTurn } from "@voicegauntlet/core";
+import { createDialogueReplay, type TranscriptTurn } from "@voicegauntlet/core";
 import { NextResponse } from "next/server";
 import { requireAuthenticatedUser } from "../../../../lib/auth";
 import { persistAudioArtifact } from "../../../../lib/live-persistence";
@@ -22,7 +22,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "ElevenLabs replay generation requires ELEVENLABS_API_KEY." }, { status: 400 });
   }
 
-  const transcript = body.transcript?.length ? body.transcript : demoDataset.runs[0]!.transcript;
+  const transcript = Array.isArray(body.transcript) ? body.transcript : [];
+  if (!transcript.some((turn) => (turn.role === "user" || turn.role === "agent") && turn.message?.trim())) {
+    return NextResponse.json({ error: "Replay generation requires a non-empty live transcript." }, { status: 422 });
+  }
   const customerVoiceId = body.customerVoiceId ?? process.env.ELEVENLABS_CUSTOMER_VOICE_ID ?? "21m00Tcm4TlvDq8ikWAM";
   const agentVoiceId = body.agentVoiceId ?? process.env.ELEVENLABS_AGENT_VOICE_ID ?? "Aw4FAjKCGjjNkVhN1Xmq";
   const inputs = transcript

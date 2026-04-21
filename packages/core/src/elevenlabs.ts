@@ -54,6 +54,11 @@ export async function simulateConversation(params: {
   const transcript = normalizeElevenLabsTranscript(
     payload.simulated_conversation ?? payload.simulatedConversation ?? payload.conversation ?? payload.history
   );
+  const hasUserTurn = transcript.some((turn) => turn.role === "user" && turn.message.trim());
+  const hasAgentTurn = transcript.some((turn) => turn.role === "agent" && turn.message.trim());
+  if (!hasUserTurn || !hasAgentTurn) {
+    throw new Error("ElevenLabs simulation returned no usable user/agent transcript turns.");
+  }
   return { raw, transcript };
 }
 
@@ -253,7 +258,7 @@ export function conversationDetailsToAudioEvidence(details: ElevenLabsConversati
   return {
     source: hasTwoSidedRecording ? "recorded_call" : "none",
     label: hasTwoSidedRecording ? "Recorded ElevenLabs call" : "No recorded call audio available",
-    url,
+    url: hasTwoSidedRecording ? url : null,
     turnAudio: [],
     conversationId: details.conversationId,
     hasUserAudio: details.hasUserAudio,

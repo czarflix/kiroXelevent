@@ -58,7 +58,7 @@ export function shrinkTranscript(run: RunResult, predicate = defaultFailurePredi
     originalTurnCount: run.transcript.length,
     minimizedTurnCount: current.length,
     confidence: predicate(current) ? 0.92 : 0.62,
-    reproductionCommand: `pnpm voicegauntlet run --scenario ${run.scenarioId} --requirement ${run.requirementId}`
+    reproductionCommand: `Open /app, run scenario ${run.scenarioId} for ${run.requirementId}, then click Shrink failure.`
   };
 }
 

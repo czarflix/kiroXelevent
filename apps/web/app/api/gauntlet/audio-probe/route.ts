@@ -1,4 +1,4 @@
-import { createSignedConversationUrl, getConversationAudio, getConversationDetails } from "@voicegauntlet/core";
+import { conversationDetailsToAudioEvidence, createSignedConversationUrl, getConversationAudio, getConversationDetails } from "@voicegauntlet/core";
 import { NextResponse } from "next/server";
 import { requireAuthenticatedUser } from "../../../../lib/auth";
 import { runElevenLabsWebSocketProbe } from "../../../../lib/elevenlabs-websocket-probe";
@@ -42,27 +42,12 @@ export async function POST(request: Request) {
           source: "recorded_call"
         });
       }
+      const evidence = conversationDetailsToAudioEvidence(details, audioBase64 ? `data:audio/mpeg;base64,${audioBase64}` : null);
       return NextResponse.json({
         conversationId: details.conversationId,
         transcript: details.transcript,
         artifact,
-        audioEvidence: {
-          source: details.hasAudio && details.hasUserAudio && details.hasResponseAudio ? "recorded_call" : "none",
-          label:
-            details.hasAudio && details.hasUserAudio && details.hasResponseAudio
-              ? "Recorded ElevenLabs call"
-              : "Conversation exists but does not expose complete recorded audio",
-          url: audioBase64 ? `data:audio/mpeg;base64,${audioBase64}` : null,
-          turnAudio: [],
-          conversationId: details.conversationId,
-          hasUserAudio: details.hasUserAudio,
-          hasResponseAudio: details.hasResponseAudio,
-          generatedAt: null,
-          warning:
-            details.hasAudio && details.hasUserAudio && details.hasResponseAudio
-              ? null
-              : "Recorded-call label is withheld because ElevenLabs did not report both user and response audio."
-        }
+        audioEvidence: evidence
       });
     } catch (error) {
       return NextResponse.json(
@@ -98,11 +83,11 @@ export async function POST(request: Request) {
         ...probe,
         artifact,
         audioEvidence: {
-          source: probe.conversationAudioBase64 ? "recorded_call" : probe.agentAudioBase64 ? "turn_player" : "none",
+          source: probe.conversationAudioBase64 ? "recorded_call" : "none",
           label: probe.conversationAudioBase64
             ? "Recorded ElevenLabs call"
             : probe.agentAudioBase64
-              ? "Live WebSocket agent audio chunks captured"
+              ? "WebSocket agent audio chunks captured"
               : "WebSocket probe transcript only",
           url: probe.conversationAudioBase64 ? `data:audio/mpeg;base64,${probe.conversationAudioBase64}` : null,
           turnAudio: [],
@@ -113,7 +98,7 @@ export async function POST(request: Request) {
           warning:
             probe.warning ??
             (probe.agentAudioBase64
-              ? "Agent audio chunks were captured from the WebSocket, but no complete recorded call audio was returned."
+              ? "Agent audio chunks were captured from the WebSocket, but no complete two-sided recorded call audio was returned. Use generated replay for hearable evidence."
               : null)
         }
       });
