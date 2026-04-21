@@ -22,9 +22,10 @@ VoiceGauntlet is a Kiro-built QA and red-team lab for ElevenLabs voice agents. I
 
 #### Acceptance Criteria
 
-1. WHEN requirements are parsed, THE SYSTEM SHALL generate one to three adversarial scenarios per requirement
-2. WHEN generating scenarios, THE SYSTEM SHALL include anger, prompt injection, tool failure, bilingual, privacy, and escalation variants where relevant
-3. WHEN scenarios are generated, THE SYSTEM SHALL preserve the requirement ID on every scenario
+1. WHEN requirements are parsed for normal live execution, THE SYSTEM SHALL generate one to three compact adversarial scenarios per requirement
+2. WHEN the public proof flow is shown, THE SYSTEM SHALL expose a 20-scenario coverage suite for the hook claim
+3. WHEN generating scenarios, THE SYSTEM SHALL include anger, prompt injection, tool failure, bilingual, privacy, ambiguity, chargeback, conversation repair, and escalation variants where relevant
+4. WHEN scenarios are generated, THE SYSTEM SHALL preserve the requirement ID on every scenario
 
 ### Requirement 3: ElevenLabs Simulation
 
@@ -47,6 +48,18 @@ VoiceGauntlet is a Kiro-built QA and red-team lab for ElevenLabs voice agents. I
 2. WHEN recorded ElevenLabs conversation audio exists, THE SYSTEM SHALL label it `Recorded ElevenLabs call`
 3. WHEN recorded conversation audio does not exist, THE SYSTEM SHALL synthesize two-speaker replay audio from the real transcript and label it `Generated replay`
 4. WHEN no audio exists, THE SYSTEM SHALL show an explicit unavailable state instead of a fake waveform
+
+### Requirement 8: Live Monitor
+
+**User Story:** As a reviewer, I want to hear an adversarial customer and the ElevenLabs agent while the WebSocket conversation is happening, so that the product demo feels like a real voice-agent test lab.
+
+#### Acceptance Criteria
+
+1. WHEN an authenticated user starts Live Monitor, THE SYSTEM SHALL fetch a server-generated signed ElevenLabs WebSocket URL without exposing the API key
+2. WHEN Live Monitor starts, THE SYSTEM SHALL generate synthetic caller PCM audio with ElevenLabs TTS, play it locally, and send the same PCM chunks to the Agent WebSocket
+3. WHEN the ElevenLabs WebSocket emits agent audio chunks, THE SYSTEM SHALL play those chunks through the browser after the user's click
+4. WHEN WebSocket transcript events arrive, THE SYSTEM SHALL show live customer and agent transcript rows
+5. WHEN the WebSocket closes, THE SYSTEM SHALL check conversation metadata/audio and label recorded-call evidence only when both user and response audio are confirmed
 
 ### Requirement 5: Failure Shrinking
 

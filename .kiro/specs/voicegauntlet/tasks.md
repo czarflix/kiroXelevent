@@ -20,5 +20,8 @@
 - [x] 18. Complete WebSocket audio probe path with signed URL, caller audio chunk, ping/pong, event capture, and conversation-audio fetch
 - [x] 19. Run ElevenLabs simulation, replay/audio, and conversation-audio smoke checks with a key that has the required permissions
 - [x] 20. Deploy to Vercel and verify public `/demo`, authenticated `/app`, and `/api/health`
-- [ ] 21. Record final 60-90 second submission video from production
-- [ ] 22. Post on X, LinkedIn, Instagram, and TikTok
+- [x] 21. Generate GPT image design mockup contact sheet and adapt Taste-style minimalist rules into UI steering
+- [x] 22. Add browser Live Monitor with signed URL, synthetic caller PCM, Agent WebSocket audio playback, live transcript, chunk counts, and recorded-call metadata check
+- [x] 23. Upgrade demo surface with 20 adversarial scenarios, Forensic Replay language, shrink confidence, and minimalist proof panels
+- [ ] 24. Record final 60-90 second submission video from production
+- [ ] 25. Post on X, LinkedIn, Instagram, and TikTok

@@ -13,12 +13,14 @@ test("public demo loads core workflow", async ({ page }, testInfo) => {
   await expect(page.getByRole("heading", { name: "VoiceGauntlet" })).toBeVisible();
   await expect(page.getByText("Built with Kiro")).toBeVisible();
   await expect(page.getByText(".kiro/specs/refundbot-demo/requirements.md")).toBeVisible();
+  await expect(page.getByText(/20 adversarial scenarios/i)).toBeVisible();
 
   await page.getByRole("button", { name: /Play proof run/i }).click();
   await expect(page.getByRole("heading", { name: /Agent claimed refund success/i })).toBeVisible();
   await expect(page.locator("[data-testid='transcript']")).toContainText("Your refund has been processed successfully");
 
-  await page.getByRole("button", { name: /Open audio evidence/i }).click();
+  await page.getByRole("button", { name: /Open forensic replay/i }).click();
+  await expect(page.getByRole("heading", { name: "Forensic Replay." })).toBeVisible();
   await expect(page.locator("[data-testid='audio-player']")).toBeVisible();
   await expect(page.locator("[data-testid='audio-player'] .micro-label")).toHaveText("Generated Replay");
   await page.getByRole("button", { name: /Play audio evidence/i }).click();
@@ -36,6 +38,7 @@ test("public demo loads core workflow", async ({ page }, testInfo) => {
 
   await page.getByRole("button", { name: /Shrink failure/i }).click();
   await expect(page.getByText(/turns to/i)).toBeVisible();
+  await expect(page.getByText(/Confidence/i)).toBeVisible();
 
   await page.getByRole("button", { name: /Export Kiro task/i }).click();
   await expect(page.getByText("Task ready for `.kiro/specs/agent-hardening/tasks.md`.")).toBeVisible();

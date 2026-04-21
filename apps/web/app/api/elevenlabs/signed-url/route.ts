@@ -17,5 +17,12 @@ export async function POST(request: Request) {
   }
 
   const signedUrl = await createSignedConversationUrl(apiKey, agentId);
-  return NextResponse.json({ signedUrl, expiresInSeconds: 900 });
+  return NextResponse.json(
+    { signedUrl, expiresInSeconds: 900 },
+    {
+      headers: {
+        "Cache-Control": "no-store"
+      }
+    }
+  );
 }

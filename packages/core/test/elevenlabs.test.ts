@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { buildDialogueReplayInputs, conversationDetailsToAudioEvidence, normalizeElevenLabsTranscript, simulateConversation } from "../src";
+import {
+  buildDialogueReplayInputs,
+  buildElevenLabsPong,
+  conversationDetailsToAudioEvidence,
+  normalizeElevenLabsTranscript,
+  parseElevenLabsLiveEvent,
+  parsePcmAudioFormat,
+  simulateConversation
+} from "../src";
 import type { ElevenLabsConversationDetails, TranscriptTurn } from "../src";
 
 describe("ElevenLabs truth helpers", () => {
@@ -75,5 +83,53 @@ describe("ElevenLabs truth helpers", () => {
     expect(normalizeElevenLabsTranscript([{ role: "assistant", content: "Hello" }])).toEqual([
       { index: 0, role: "agent", message: "Hello", timeInCallSecs: undefined, toolCalls: [], toolResults: [] }
     ]);
+  });
+
+  it("parses live WebSocket metadata, ping, transcript, response, and audio events", () => {
+    expect(
+      parseElevenLabsLiveEvent({
+        type: "conversation_initiation_metadata",
+        conversation_initiation_metadata_event: {
+          conversation_id: "conv_123",
+          agent_output_audio_format: "pcm_16000",
+          user_input_audio_format: "pcm_16000"
+        }
+      })
+    ).toMatchObject({
+      kind: "metadata",
+      conversationId: "conv_123",
+      agentOutputAudioFormat: "pcm_16000"
+    });
+
+    expect(parseElevenLabsLiveEvent({ type: "ping", ping_event: { event_id: 42 } })).toEqual({
+      kind: "ping",
+      rawType: "ping",
+      eventId: 42
+    });
+    expect(buildElevenLabsPong(42)).toBe('{"type":"pong","event_id":42}');
+
+    expect(
+      parseElevenLabsLiveEvent({ type: "user_transcript", user_transcription_event: { user_transcript: "I need a refund." } })
+    ).toMatchObject({ kind: "user_transcript", text: "I need a refund." });
+    expect(parseElevenLabsLiveEvent({ type: "agent_response", agent_response_event: { agent_response: "I can help." } })).toMatchObject({
+      kind: "agent_response",
+      text: "I can help."
+    });
+    expect(parseElevenLabsLiveEvent({ type: "audio", audio_event: { audio_base_64: "AAAA", event_id: 7 } })).toMatchObject({
+      kind: "audio",
+      audioBase64: "AAAA",
+      eventId: 7
+    });
+  });
+
+  it("parses supported PCM formats and rejects unsupported live formats", () => {
+    expect(parsePcmAudioFormat("pcm_16000")).toEqual({
+      codec: "pcm_s16le",
+      sampleRate: 16000,
+      channels: 1,
+      source: "pcm_16000"
+    });
+    expect(parsePcmAudioFormat("mp3_44100_128")).toBeNull();
+    expect(parseElevenLabsLiveEvent("{bad json")).toMatchObject({ kind: "malformed" });
   });
 });

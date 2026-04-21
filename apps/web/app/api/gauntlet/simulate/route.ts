@@ -1,7 +1,7 @@
 import {
   demoDataset,
   evaluateTranscript,
-  generateScenarios,
+  generateScenarioSuite,
   parseKiroRequirements,
   refineScenariosWithGroq,
   simulateConversation,
@@ -31,14 +31,19 @@ export async function POST(request: Request) {
     body.specMarkdown ?? demoDataset.specMarkdown,
     body.sourcePath ?? ".kiro/specs/refundbot-demo/requirements.md"
   );
-  const deterministic = generateScenarios(requirements, 3);
-  const refinement = await refineScenariosWithGroq({
-    requirements,
-    scenarios: deterministic,
-    ...(body.useGroq === false || process.env.GROQ_API_KEY === undefined ? {} : { apiKey: process.env.GROQ_API_KEY })
-  });
-  const scenarios = refinement.scenarios;
-  const scenario = scenarios.find((item) => item.id === body.scenarioId) ?? scenarios[0];
+  const deterministic = generateScenarioSuite(requirements, 20);
+  const scenarioToRefine = deterministic.find((item) => item.id === body.scenarioId) ?? deterministic[0];
+  const refinement =
+    scenarioToRefine && body.useGroq !== false
+      ? await refineScenariosWithGroq({
+          requirements,
+          scenarios: [scenarioToRefine],
+          ...(process.env.GROQ_API_KEY === undefined ? {} : { apiKey: process.env.GROQ_API_KEY })
+        })
+      : { scenarios: scenarioToRefine ? [scenarioToRefine] : [], source: "deterministic_fallback" as const };
+  const refinedScenario = refinement.scenarios[0];
+  const scenarios = refinedScenario ? deterministic.map((item) => (item.id === refinedScenario.id ? refinedScenario : item)) : deterministic;
+  const scenario = refinedScenario ?? scenarios.find((item) => item.id === body.scenarioId) ?? scenarios[0];
 
   if (!scenario) {
     return NextResponse.json({ error: "No scenario could be generated from the spec." }, { status: 422 });

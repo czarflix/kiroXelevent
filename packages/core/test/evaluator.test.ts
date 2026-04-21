@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { demoDataset, evaluateTranscript, generateScenarios, getDemoRun, parseKiroRequirements, refundBotRequirements } from "../src";
+import {
+  demoDataset,
+  evaluateTranscript,
+  generateScenarioSuite,
+  generateScenarios,
+  getDemoRun,
+  parseKiroRequirements,
+  refundBotRequirements
+} from "../src";
 import type { TranscriptTurn } from "../src";
 
 const toolOutageScenario = generateScenarios(parseKiroRequirements(refundBotRequirements), 3).find(
@@ -44,5 +52,12 @@ describe("truth-model evaluation", () => {
   it("selects deterministic demo runs by status and audio source", () => {
     expect(getDemoRun({ status: "failed", audioSource: "generated_replay" }).id).toBe(demoDataset.runs[0]?.id);
     expect(getDemoRun({ status: "passed" }).status).toBe("passed");
+  });
+
+  it("keeps the compact generator stable and exposes a 20-scenario demo suite", () => {
+    const requirements = parseKiroRequirements(refundBotRequirements);
+    expect(generateScenarios(requirements, 3)).toHaveLength(9);
+    expect(generateScenarioSuite(requirements, 20)).toHaveLength(20);
+    expect(demoDataset.scenarios.filter((scenario) => !scenario.id.endsWith("-fixed"))).toHaveLength(20);
   });
 });

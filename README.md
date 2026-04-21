@@ -11,8 +11,8 @@ Normal voice-agent demos prove the happy path. VoiceGauntlet attacks the paths t
 The final product loop is:
 
 ```text
-Kiro spec -> adversarial scenarios -> ElevenLabs simulation -> red failure
--> hear audio evidence -> shrink failure -> export Kiro task -> rerun green
+Kiro spec -> 20 adversarial scenarios -> Live Monitor audio -> ElevenLabs simulation
+-> red failure -> Forensic Replay -> shrink failure -> export Kiro task -> rerun green
 ```
 
 ## Truth Model
@@ -20,6 +20,7 @@ Kiro spec -> adversarial scenarios -> ElevenLabs simulation -> red failure
 VoiceGauntlet keeps runtime labels exact:
 
 - **ElevenLabs simulation** means `simulate-conversation`: real agent testing with text transcript, tool calls, and analysis. It is not an audio call.
+- **Live agent stream** means the authenticated browser is playing a synthetic caller locally while receiving and playing ElevenLabs Agent WebSocket audio chunks.
 - **Recorded ElevenLabs call** means actual conversation audio exists and is backed by ElevenLabs conversation/audio metadata.
 - **Generated replay** means two-speaker audio created from a real transcript. The live replay route uses ElevenLabs Text to Dialogue when a valid key is configured. It is hearable evidence, but not a recorded call.
 - **Demo fixture** means a preverified public proof artifact for judges, not a live provider run.
@@ -69,7 +70,7 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Open `http://localhost:3000/demo` for the public judge demo and `http://localhost:3000/app` for authenticated live runs. The live workspace accepts an ElevenLabs agent ID, imports Kiro requirements, runs `simulate-conversation`, generates replay audio, runs a WebSocket audio probe, persists evidence to Supabase, exports Kiro tasks, and reruns the selected live scenario.
+Open `http://localhost:3000/demo` for the public judge demo and `http://localhost:3000/app` for authenticated live runs. The live workspace accepts an ElevenLabs agent ID, imports Kiro requirements, starts Live Monitor audio, runs `simulate-conversation`, generates forensic replay audio, checks recorded-call metadata after WebSocket close, persists evidence to Supabase, exports Kiro tasks, and reruns the selected live scenario.
 
 ## Environment
 
@@ -114,7 +115,8 @@ Verified on 2026-04-22 IST:
 - `/api/health` reports ElevenLabs, Groq, and Supabase configured.
 - Public `/demo` passes desktop and mobile Playwright checks, including generated audio playback metadata.
 - Public demo audio serves as `audio/mpeg` and returns nonzero bytes.
-- Authenticated `/app` API probe passes against production: real ElevenLabs simulation, Supabase run persistence, generated replay audio, WebSocket probe with conversation ID, and persisted Kiro task export.
+- Authenticated production API proof passes with a temporary Supabase user: signed URL creation, synthetic caller PCM, ElevenLabs WebSocket agent audio chunks, live simulation, Supabase run persistence, generated replay audio, and persisted Kiro task export.
+- Local provider smokes pass: `pnpm smoke:elevenlabs` and `pnpm smoke:elevenlabs:ws`.
 - Local gates pass: `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm security:scan`, and `CI=1 pnpm --filter @voicegauntlet/web test:e2e`.
 
 ## Demo Script
@@ -123,12 +125,13 @@ Target length: 60-90 seconds.
 
 1. Say the hook in the first five seconds.
 2. Show `.kiro/specs/refundbot-demo/requirements.md`.
-3. Generate or open adversarial scenarios mapped to requirement IDs.
-4. Run the gauntlet and show a red failure.
-5. Play the hearable evidence and show whether it is a recorded call or generated replay.
-6. Show the minimized failing transcript.
-7. Export `.kiro/specs/agent-hardening/tasks.md`.
-8. Rerun green and show VoiceGauntlet Certified.
+3. Show the 20-scenario coverage map.
+4. In `/app`, start Live Monitor and let the viewer hear synthetic caller audio plus ElevenLabs agent audio chunks.
+5. Run the gauntlet and show a red failure.
+6. Open Forensic Replay and show whether it is a recorded call or generated replay.
+7. Show the minimized failing transcript and shrink confidence.
+8. Export `.kiro/specs/agent-hardening/tasks.md`.
+9. Rerun green and show VoiceGauntlet Certified.
 
 ## Social Caption
 
@@ -151,6 +154,7 @@ Post on X, LinkedIn, Instagram, and TikTok.
 - Public demo works without login.
 - Live mode works with configured provider keys.
 - At least one failed run has hearable two-sided evidence.
+- Authenticated `/app` Live Monitor plays synthetic caller audio and ElevenLabs agent stream audio.
 - Audio labels are truthful: simulation, recorded call, generated replay, or demo fixture.
 - Generated replay is never called a recorded call.
 - Green rerun actually passes the evaluator.

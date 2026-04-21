@@ -24,7 +24,7 @@ const stages: Array<{ id: Stage; label: string }> = [
   { id: "spec", label: "Spec" },
   { id: "running", label: "Run" },
   { id: "failure", label: "Failure" },
-  { id: "audio", label: "Audio" },
+  { id: "audio", label: "Replay" },
   { id: "shrink", label: "Shrink" },
   { id: "task", label: "Kiro Task" },
   { id: "green", label: "Green" }
@@ -199,6 +199,7 @@ export function GauntletConsole({ data, mode = "demo" }: { data: DemoData; mode?
               taskMarkdown={taskMarkdown}
               error={error}
               specMarkdown={data.specMarkdown}
+              scenarios={data.scenarios}
             />
           </article>
 
@@ -230,9 +231,21 @@ export function GauntletConsole({ data, mode = "demo" }: { data: DemoData; mode?
             </div>
 
             <div className="trace-card">
+              <div className="micro-label">Scenario Coverage</div>
+              <strong>{data.scenarios.filter((scenario) => !scenario.id.endsWith("-fixed")).length} adversarial scenarios</strong>
+              <span>{coverageTags(data.scenarios).slice(0, 5).join(", ")}</span>
+            </div>
+
+            <div className="trace-card">
               <div className="micro-label">Evidence Source</div>
               <strong>{stage === "spec" ? "Not run yet" : sourceLabel(activeRun)}</strong>
               <span>{stage === "spec" ? "Evidence appears after the gauntlet runs." : activeRun.audioEvidence.label}</span>
+            </div>
+
+            <div className="trace-card">
+              <div className="micro-label">Proof Monitor</div>
+              <strong>{mode === "demo" ? "Public proof run" : "Live workspace"}</strong>
+              <span>{mode === "demo" ? "No live provider call is made on /demo." : "Live Monitor is available in /app."}</span>
             </div>
 
             {stage === "spec" ? null : (
@@ -263,6 +276,7 @@ function StageContent(props: {
   taskMarkdown: string;
   error: string | null;
   specMarkdown: string;
+  scenarios: Scenario[];
 }) {
   if (props.stage === "running") {
     return (
@@ -290,6 +304,17 @@ function StageContent(props: {
         <div className="micro-label">Kiro Spec Loaded</div>
         <h2 className="serif">{props.requirement?.title}</h2>
         <p className="lede">VoiceGauntlet reads the Kiro requirement, creates adversarial customer scenarios, and maps every result back to the original requirement ID.</p>
+        <div className="coverage-block">
+          <div>
+            <span className="metric-number">{props.scenarios.filter((scenario) => !scenario.id.endsWith("-fixed")).length}</span>
+            <span>adversarial scenarios</span>
+          </div>
+          <div className="coverage-map">
+            {coverageTags(props.scenarios).map((tag) => (
+              <span key={tag}>{tag}</span>
+            ))}
+          </div>
+        </div>
         <div className="spec-preview">
           {props.specMarkdown
             .split("\n")
@@ -306,8 +331,8 @@ function StageContent(props: {
     return (
       <div className="stage-card">
         <div className="micro-label">Audio Evidence</div>
-        <h2 className="serif">Hear the failure.</h2>
-        <p className="lede">This player only appears when a real audio asset exists. The source label says whether it is a recorded call, a generated replay, or transcript-only evidence.</p>
+        <h2 className="serif">Forensic Replay.</h2>
+        <p className="lede">Hearable proof generated from the actual failing transcript. The source label stays explicit: recorded call only when provider metadata proves it, generated replay when ElevenLabs creates audio from transcript.</p>
         <WaveformReplay run={props.run} />
       </div>
     );
@@ -319,6 +344,13 @@ function StageContent(props: {
         <div className="micro-label">Minimal Repro</div>
         <h2 className="serif">{props.failure ? `${props.failure.originalTurnCount} turns to ${props.failure.minimizedTurnCount}` : "No failure to shrink"}</h2>
         <p className="lede">{props.failure?.evidence ?? "The selected run is green."}</p>
+        {props.failure ? (
+          <div className="shrink-proof">
+            <span>Confidence {(props.failure.confidence * 100).toFixed(0)}%</span>
+            <span>{props.failure.originalTurnCount - props.failure.minimizedTurnCount} turns removed</span>
+            <span>Failure predicate preserved</span>
+          </div>
+        ) : null}
         <Transcript turns={props.failure?.minimalTranscript ?? props.run.transcript} compact />
         {props.failure ? <code className="repro-command">{props.failure.reproductionCommand}</code> : null}
       </div>
@@ -384,7 +416,7 @@ function primaryAction(stage: Stage, status: RunResult["status"], mode: "demo" |
     return "Running";
   }
   if (stage === "failure") {
-    return "Open audio evidence";
+    return "Open forensic replay";
   }
   if (stage === "audio") {
     return "Shrink failure";
@@ -432,4 +464,8 @@ function sourceLabel(run: RunResult) {
     return "Audio probe";
   }
   return "Demo fixture";
+}
+
+function coverageTags(scenarios: Scenario[]) {
+  return [...new Set(scenarios.flatMap((scenario) => scenario.tags).filter((tag) => !/^req-\d+/i.test(tag)))].slice(0, 10);
 }

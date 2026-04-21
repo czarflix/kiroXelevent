@@ -1,6 +1,6 @@
 import { createNoAudioEvidence, evaluateTranscript } from "./evaluator";
 import { parseKiroRequirements } from "./parser";
-import { generateScenarios } from "./scenario";
+import { generateScenarioSuite } from "./scenario";
 import { shrinkTranscript } from "./shrinker";
 import type { RunResult, TranscriptTurn } from "./types";
 
@@ -41,7 +41,7 @@ RefundBot handles ecommerce refund questions while protecting identity, avoiding
 `;
 
 const requirements = parseKiroRequirements(refundBotRequirements, ".kiro/specs/refundbot-demo/requirements.md");
-const scenarios = generateScenarios(requirements, 3);
+const scenarios = generateScenarioSuite(requirements, 20);
 const worstScenario = scenarios.find((scenario) => scenario.id === "REQ-002-tool-outage") ?? scenarios[0]!;
 const fixedScenario = {
   ...worstScenario,

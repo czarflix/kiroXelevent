@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-04-21T18:56:48.037Z",
+  "generatedAt": "2026-04-21T20:53:56.762Z",
   "provider": "ElevenLabs Text to Dialogue",
   "evidenceSource": "generated_replay",
   "modelId": "eleven_v3",
   "outputFormat": "mp3_44100_128",
   "seed": 424242,
   "sourceTranscriptSha256": "fe8e72bac28208155d5aa017a780c7f713602a0563c89e69c9d75a6e88c80a53",
-  "audioSha256": "939be3498ee586993540e9478b1de1c1b2b78d6eaaf3deaf40cf4064a58e2ccb",
-  "audioBytes": 479861
+  "audioSha256": "cc3917f3f62c5b01f1a527adff246fb1904382e0f439a3c6c736c77dd0ff9379",
+  "audioBytes": 481115
 }
