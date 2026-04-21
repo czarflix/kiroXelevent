@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { requireAuthenticatedRequest } from "../../../../lib/auth";
 
 export async function POST(request: Request) {
-  const authError = await requireAuthenticatedRequest();
+  const authError = await requireAuthenticatedRequest(request);
   if (authError) {
     return authError;
   }

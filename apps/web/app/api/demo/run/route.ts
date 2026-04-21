@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const authError = await requireAuthenticatedRequest();
+  const authError = await requireAuthenticatedRequest(request);
   if (authError) {
     return authError;
   }

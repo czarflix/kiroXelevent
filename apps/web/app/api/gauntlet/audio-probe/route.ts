@@ -7,7 +7,7 @@ import { persistAudioArtifact } from "../../../../lib/live-persistence";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  const auth = await requireAuthenticatedUser();
+  const auth = await requireAuthenticatedUser(request);
   if (auth.response || !auth.user) {
     return auth.response;
   }
