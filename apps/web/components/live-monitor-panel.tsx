@@ -14,6 +14,7 @@ import { usePcmStreamPlayer } from "./use-pcm-stream-player";
 type LiveTranscriptTurn = {
   role: "user" | "agent";
   message: string;
+  tentative?: boolean;
 };
 
 type SignedUrlResponse = {
@@ -46,6 +47,8 @@ export function LiveMonitorPanel({
   const player = usePcmStreamPlayer();
   const socketRef = useRef<WebSocket | null>(null);
   const stoppedRef = useRef(false);
+  const callerStartedRef = useRef(false);
+  const preCallerAgentBytesRef = useRef(0);
   const agentFormatRef = useRef<PcmAudioFormat | null>(fallbackLiveFormat);
   const conversationIdRef = useRef<string | null>(null);
   const [status, setStatus] = useState<LiveStatus>("idle");
@@ -77,6 +80,8 @@ export function LiveMonitorPanel({
 
     stop();
     stoppedRef.current = false;
+    callerStartedRef.current = false;
+    preCallerAgentBytesRef.current = 0;
     agentFormatRef.current = fallbackLiveFormat;
     conversationIdRef.current = null;
     setStatus("preparing");
@@ -87,6 +92,11 @@ export function LiveMonitorPanel({
     setAgentBytes(0);
     setRecordedCheck(null);
     setMessage("Preparing signed URL and synthetic caller audio.");
+
+    let activeSocket: WebSocket | null = null;
+    let callerStartTimer: ReturnType<typeof setTimeout> | null = null;
+    let callerAudio: Uint8Array | null = null;
+    let callerFormat: PcmAudioFormat | null = null;
 
     try {
       await player.start();
@@ -112,13 +122,13 @@ export function LiveMonitorPanel({
         throw new Error(payload.error ?? "Could not generate synthetic caller audio.");
       }
 
-      const callerFormat = parsePcmAudioFormat(callerResponse.headers.get("X-VoiceGauntlet-Audio-Format")) ?? fallbackLiveFormat;
-      const callerAudio = new Uint8Array(await callerResponse.arrayBuffer());
-      await player.playPcmBytes(callerAudio, callerFormat);
+      callerFormat = parsePcmAudioFormat(callerResponse.headers.get("X-VoiceGauntlet-Audio-Format")) ?? fallbackLiveFormat;
+      callerAudio = new Uint8Array(await callerResponse.arrayBuffer());
       setStatus("connecting");
-      setMessage("Opening ElevenLabs WebSocket. Customer audio is playing locally and being sent to the agent.");
+      setMessage("Opening ElevenLabs WebSocket. Customer audio will start after the agent stream is ready.");
 
       const socket = new WebSocket(signed.signedUrl);
+      activeSocket = socket;
       socketRef.current = socket;
 
       socket.addEventListener("open", () => {
@@ -126,24 +136,30 @@ export function LiveMonitorPanel({
           socket.close();
           return;
         }
+        socket.send(JSON.stringify({ type: "conversation_initiation_client_data" }));
         setStatus("streaming");
-        setMessage("Live agent stream is active.");
-        void sendPcmChunksPaced(socket, callerAudio, {
-          onChunk: () => setCallerChunks((current) => current + 1),
-          shouldContinue: () => !stoppedRef.current
-        });
+        setMessage("Live agent stream is active. Waiting for ElevenLabs metadata.");
       });
 
       socket.addEventListener("message", (event) => {
-        void handleSocketMessage(event.data);
+        void handleSocketMessage(socket, event.data);
       });
 
       socket.addEventListener("error", () => {
+        if (socketRef.current !== socket) {
+          return;
+        }
         setStatus("error");
         setMessage("ElevenLabs WebSocket failed. No live success is being claimed.");
       });
 
       socket.addEventListener("close", () => {
+        if (socketRef.current !== socket) {
+          return;
+        }
+        if (callerStartTimer) {
+          clearTimeout(callerStartTimer);
+        }
         socketRef.current = null;
         setStatus((current) => (current === "error" ? "error" : "closed"));
         setMessage("Live stream closed. Checking whether ElevenLabs stored complete recorded-call audio.");
@@ -157,7 +173,41 @@ export function LiveMonitorPanel({
       setMessage(error instanceof Error ? error.message : "Live monitor failed.");
     }
 
-    async function handleSocketMessage(data: MessageEvent["data"]) {
+    function scheduleCallerStart(delayMs: number) {
+      const socket = activeSocket;
+      if (!socket || callerStartedRef.current || stoppedRef.current || socketRef.current !== socket) {
+        return;
+      }
+      if (callerStartTimer) {
+        clearTimeout(callerStartTimer);
+      }
+      callerStartTimer = setTimeout(() => {
+        callerStartTimer = null;
+        void beginCallerTurn(socket);
+      }, delayMs);
+    }
+
+    async function beginCallerTurn(socket: WebSocket) {
+      if (
+        callerStartedRef.current ||
+        stoppedRef.current ||
+        socketRef.current !== socket ||
+        socket.readyState !== WebSocket.OPEN ||
+        !callerAudio ||
+        !callerFormat
+      ) {
+        return;
+      }
+      callerStartedRef.current = true;
+      setMessage("Synthetic customer audio is playing locally and streaming to ElevenLabs.");
+      await player.playPcmBytes(callerAudio, callerFormat);
+      await sendPcmChunksPaced(socket, callerAudio, {
+        onChunk: () => setCallerChunks((current) => current + 1),
+        shouldContinue: () => socketRef.current === socket && !stoppedRef.current
+      });
+    }
+
+    async function handleSocketMessage(socket: WebSocket, data: MessageEvent["data"]) {
       const text = typeof data === "string" ? data : await dataToText(data);
       const liveEvent = parseElevenLabsLiveEvent(text);
       if (liveEvent.kind === "metadata") {
@@ -170,22 +220,32 @@ export function LiveMonitorPanel({
         } else {
           agentFormatRef.current = parsedFormat ?? fallbackLiveFormat;
         }
+        scheduleCallerStart(1_200);
         return;
       }
       if (liveEvent.kind === "ping") {
-        socketRef.current?.send(buildElevenLabsPong(liveEvent.eventId));
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(buildElevenLabsPong(liveEvent.eventId));
+        }
+        return;
+      }
+      if (liveEvent.kind === "tentative_user_transcript" && liveEvent.text) {
+        setTranscript((current) => mergeLiveTranscriptTurn(current, { role: "user", message: liveEvent.text, tentative: true }, "user"));
         return;
       }
       if (liveEvent.kind === "user_transcript" && liveEvent.text) {
-        setTranscript((current) => [...current, { role: "user", message: liveEvent.text }]);
+        setTranscript((current) => mergeLiveTranscriptTurn(current, { role: "user", message: liveEvent.text }, "user"));
         return;
       }
       if (liveEvent.kind === "agent_response" && liveEvent.text) {
-        setTranscript((current) => [...current, { role: "agent", message: liveEvent.text }]);
+        if (!callerStartedRef.current) {
+          scheduleCallerStart(2_200);
+        }
+        setTranscript((current) => mergeLiveTranscriptTurn(current, { role: "agent", message: liveEvent.text }, "append"));
         return;
       }
       if (liveEvent.kind === "agent_response_correction" && liveEvent.text) {
-        setTranscript((current) => [...current, { role: "agent", message: liveEvent.text }]);
+        setTranscript((current) => mergeLiveTranscriptTurn(current, { role: "agent", message: liveEvent.text }, "replace-agent"));
         return;
       }
       if (liveEvent.kind === "audio" && liveEvent.audioBase64) {
@@ -195,12 +255,16 @@ export function LiveMonitorPanel({
           return;
         }
         const bytes = await player.playBase64Pcm(liveEvent.audioBase64, format);
+        if (!callerStartedRef.current) {
+          preCallerAgentBytesRef.current += bytes;
+          scheduleCallerStart(Math.max(1_400, estimatePcmDurationMs(preCallerAgentBytesRef.current, format) + 900));
+        }
         setAgentChunks((current) => current + 1);
         setAgentBytes((current) => current + bytes);
         return;
       }
       if (liveEvent.kind === "interruption") {
-        player.stop();
+        setMessage("ElevenLabs sent an interruption event. The live stream remains connected.");
       }
     }
 
@@ -312,12 +376,40 @@ async function sendPcmChunksPaced(
     const chunk = bytes.subarray(offset, Math.min(offset + chunkSize, bytes.byteLength));
     socket.send(JSON.stringify({ user_audio_chunk: bytesToBase64(chunk) }));
     options.onChunk();
-    await delay(90);
+    await delay(100);
   }
-  if (options.shouldContinue() && socket.readyState === WebSocket.OPEN) {
+  for (let index = 0; index < 10; index += 1) {
+    if (!options.shouldContinue() || socket.readyState !== WebSocket.OPEN) {
+      return;
+    }
     socket.send(JSON.stringify({ user_audio_chunk: bytesToBase64(new Uint8Array(3200)) }));
     options.onChunk();
+    await delay(100);
   }
+}
+
+function mergeLiveTranscriptTurn(
+  current: LiveTranscriptTurn[],
+  incoming: LiveTranscriptTurn,
+  mode: "append" | "replace-agent" | "user"
+) {
+  const last = current.at(-1);
+  if (last?.role === incoming.role && last.message === incoming.message && last.tentative === incoming.tentative) {
+    return current;
+  }
+  if (mode === "replace-agent" && last?.role === "agent") {
+    return [...current.slice(0, -1), incoming];
+  }
+  if (mode === "user" && last?.role === "user") {
+    return [...current.slice(0, -1), incoming];
+  }
+  return [...current, incoming];
+}
+
+function estimatePcmDurationMs(byteLength: number, format: PcmAudioFormat) {
+  const bytesPerSample = 2;
+  const samples = byteLength / bytesPerSample / format.channels;
+  return Math.ceil((samples / format.sampleRate) * 1000);
 }
 
 function bytesToBase64(bytes: Uint8Array) {

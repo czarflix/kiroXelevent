@@ -37,15 +37,30 @@ if (!tts.ok) {
 }
 const pcm = Buffer.from(await tts.arrayBuffer());
 console.log(`caller pcm HTTP 200 bytes ${pcm.byteLength}`);
+console.log(`caller pcm content-type ${tts.headers.get("content-type") ?? "unknown"}`);
 
 const result = await runSocket(signedUrl, pcm);
 console.log(`websocket opened ${result.opened}`);
 console.log(`conversation id ${Boolean(result.conversationId)}`);
+console.log(`tentative user transcript ${result.tentativeUserTranscript}`);
 console.log(`user transcript ${result.userTranscript}`);
 console.log(`agent response ${result.agentResponse}`);
+console.log(`agent response after user ${result.agentResponseAfterUser}`);
 console.log(`agent audio bytes ${result.agentAudioBytes}`);
+console.log(`user input audio format ${result.userInputAudioFormat}`);
+console.log(`agent output audio format ${result.agentOutputAudioFormat}`);
+console.log(`event counts ${JSON.stringify(result.eventCounts)}`);
+if (result.clientError) {
+  console.log(`client error ${JSON.stringify(result.clientError)}`);
+}
 
-if (!result.opened || !result.conversationId || !result.agentResponse || result.agentAudioBytes <= 0) {
+if (
+  !result.opened ||
+  !result.conversationId ||
+  !result.userTranscript ||
+  !result.agentResponseAfterUser ||
+  result.agentAudioBytesAfterUser <= 0
+) {
   process.exit(1);
 }
 
@@ -64,23 +79,65 @@ async function runSocket(url, pcm) {
     const state = {
       opened: false,
       conversationId: null,
+      audioStarted: false,
+      tentativeUserTranscript: false,
       userTranscript: false,
       agentResponse: false,
-      agentAudioBytes: 0
+      agentResponseAfterUser: false,
+      agentAudioBytes: 0,
+      agentAudioBytesAfterUser: 0,
+      userInputAudioFormat: null,
+      agentOutputAudioFormat: null,
+      eventCounts: {},
+      clientError: null,
+      preCallerAgentAudioBytes: 0
     };
     const socket = new WebSocket(url);
+    let audioStartTimer = null;
     const timeout = setTimeout(() => {
       socket.close();
       resolve(state);
-    }, 20_000);
+    }, 35_000);
+
+    function scheduleAudio(delayMs) {
+      if (state.audioStarted || socket.readyState !== WebSocket.OPEN) {
+        return;
+      }
+      if (audioStartTimer) {
+        clearTimeout(audioStartTimer);
+      }
+      audioStartTimer = setTimeout(() => {
+        audioStartTimer = null;
+        void sendAudio();
+      }, delayMs);
+    }
+
+    async function sendAudio() {
+      if (state.audioStarted || socket.readyState !== WebSocket.OPEN) {
+        return;
+      }
+      state.audioStarted = true;
+      console.log("sending caller audio");
+      for (let offset = 0; offset < pcm.byteLength; offset += 3200) {
+        if (socket.readyState !== WebSocket.OPEN) {
+          return;
+        }
+        const chunk = pcm.subarray(offset, Math.min(offset + 3200, pcm.byteLength));
+        socket.send(JSON.stringify({ user_audio_chunk: chunk.toString("base64") }));
+        await delay(100);
+      }
+      for (let index = 0; index < 10; index += 1) {
+        if (socket.readyState !== WebSocket.OPEN) {
+          return;
+        }
+        socket.send(JSON.stringify({ user_audio_chunk: Buffer.alloc(3200).toString("base64") }));
+        await delay(100);
+      }
+    }
 
     socket.addEventListener("open", () => {
       state.opened = true;
-      for (let offset = 0; offset < pcm.byteLength; offset += 3200) {
-        const chunk = pcm.subarray(offset, Math.min(offset + 3200, pcm.byteLength));
-        socket.send(JSON.stringify({ user_audio_chunk: chunk.toString("base64") }));
-      }
-      socket.send(JSON.stringify({ user_audio_chunk: Buffer.alloc(3200).toString("base64") }));
+      socket.send(JSON.stringify({ type: "conversation_initiation_client_data" }));
     });
 
     socket.addEventListener("message", (message) => {
@@ -90,23 +147,53 @@ async function runSocket(url, pcm) {
       } catch {
         return;
       }
+      if (typeof payload.type === "string") {
+        state.eventCounts[payload.type] = (state.eventCounts[payload.type] ?? 0) + 1;
+      }
       if (payload.type === "conversation_initiation_metadata") {
-        state.conversationId = payload.conversation_initiation_metadata_event?.conversation_id ?? state.conversationId;
+        const event = payload.conversation_initiation_metadata_event ?? {};
+        state.conversationId = event.conversation_id ?? state.conversationId;
+        state.userInputAudioFormat = event.user_input_audio_format ?? null;
+        state.agentOutputAudioFormat = event.agent_output_audio_format ?? null;
+        scheduleAudio(1200);
       }
       if (payload.type === "ping") {
         socket.send(JSON.stringify({ type: "pong", event_id: payload.ping_event?.event_id }));
+      }
+      if (payload.type === "tentative_user_transcript" && payload.user_transcription_event?.user_transcript) {
+        state.tentativeUserTranscript = true;
       }
       if (payload.type === "user_transcript" && payload.user_transcription_event?.user_transcript) {
         state.userTranscript = true;
       }
       if (payload.type === "agent_response" && payload.agent_response_event?.agent_response) {
+        if (!state.audioStarted) {
+          scheduleAudio(2200);
+        }
         state.agentResponse = true;
+        if (state.userTranscript) {
+          state.agentResponseAfterUser = true;
+        }
       }
       if (payload.type === "audio" && payload.audio_event?.audio_base_64) {
-        state.agentAudioBytes += Buffer.from(payload.audio_event.audio_base_64, "base64").byteLength;
+        if (!state.audioStarted) {
+          state.preCallerAgentAudioBytes += Buffer.from(payload.audio_event.audio_base_64, "base64").byteLength;
+          scheduleAudio(Math.max(1400, estimatePcmDurationMs(state.preCallerAgentAudioBytes, state.agentOutputAudioFormat) + 900));
+        }
+        const bytes = Buffer.from(payload.audio_event.audio_base_64, "base64").byteLength;
+        state.agentAudioBytes += bytes;
+        if (state.userTranscript) {
+          state.agentAudioBytesAfterUser += bytes;
+        }
       }
-      if (state.conversationId && state.agentResponse && state.agentAudioBytes > 0) {
+      if (payload.type === "client_error") {
+        state.clientError = payload;
+      }
+      if (state.conversationId && state.userTranscript && state.agentResponseAfterUser && state.agentAudioBytesAfterUser > 0) {
         clearTimeout(timeout);
+        if (audioStartTimer) {
+          clearTimeout(audioStartTimer);
+        }
         socket.close();
         resolve(state);
       }
@@ -114,9 +201,22 @@ async function runSocket(url, pcm) {
 
     socket.addEventListener("error", () => {
       clearTimeout(timeout);
+      if (audioStartTimer) {
+        clearTimeout(audioStartTimer);
+      }
       reject(new Error("WebSocket error"));
     });
   });
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function estimatePcmDurationMs(byteLength, format = "pcm_16000") {
+  const match = /^pcm_(\d+)$/.exec(String(format ?? "pcm_16000"));
+  const sampleRate = match ? Number.parseInt(match[1], 10) : 16000;
+  return Math.ceil((byteLength / 2 / sampleRate) * 1000);
 }
 
 async function request(pathname, init = {}) {

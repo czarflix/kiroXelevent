@@ -37,7 +37,7 @@ export function usePcmStreamPlayer(): PcmStreamPlayer {
     if (context.state === "suspended") {
       await context.resume();
     }
-    nextStartRef.current = Math.max(nextStartRef.current, context.currentTime + 0.08);
+    nextStartRef.current = Math.max(nextStartRef.current, context.currentTime + 0.18);
     setError(null);
   }, []);
 
@@ -77,7 +77,7 @@ export function usePcmStreamPlayer(): PcmStreamPlayer {
       const source = context.createBufferSource();
       source.buffer = buffer;
       source.connect(gainRef.current ?? context.destination);
-      const startTime = Math.max(context.currentTime + 0.08, nextStartRef.current);
+      const startTime = Math.max(context.currentTime + 0.18, nextStartRef.current);
       nextStartRef.current = startTime + buffer.duration;
       sourcesRef.current.push(source);
       setQueuedChunks((current) => current + 1);

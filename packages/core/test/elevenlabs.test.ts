@@ -111,6 +111,9 @@ describe("ElevenLabs truth helpers", () => {
     expect(
       parseElevenLabsLiveEvent({ type: "user_transcript", user_transcription_event: { user_transcript: "I need a refund." } })
     ).toMatchObject({ kind: "user_transcript", text: "I need a refund." });
+    expect(
+      parseElevenLabsLiveEvent({ type: "tentative_user_transcript", user_transcription_event: { user_transcript: "I need a refund" } })
+    ).toMatchObject({ kind: "tentative_user_transcript", text: "I need a refund" });
     expect(parseElevenLabsLiveEvent({ type: "agent_response", agent_response_event: { agent_response: "I can help." } })).toMatchObject({
       kind: "agent_response",
       text: "I can help."

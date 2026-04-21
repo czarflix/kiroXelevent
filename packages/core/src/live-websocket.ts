@@ -18,6 +18,7 @@ export type ElevenLabsLiveEvent =
       userInputAudioFormat: string | null;
     }
   | { kind: "ping"; rawType: "ping"; eventId: number | null }
+  | { kind: "tentative_user_transcript"; rawType: "tentative_user_transcript"; text: string }
   | { kind: "user_transcript"; rawType: "user_transcript"; text: string }
   | { kind: "agent_response"; rawType: "agent_response"; text: string }
   | { kind: "agent_response_correction"; rawType: "agent_response_correction"; text: string }
@@ -71,6 +72,15 @@ export function parseElevenLabsLiveEvent(input: string | unknown): ElevenLabsLiv
   if (type === "user_transcript") {
     const event = objectValue(record.user_transcription_event);
     return { kind: "user_transcript", rawType: "user_transcript", text: stringValue(event.user_transcript) ?? "" };
+  }
+
+  if (type === "tentative_user_transcript") {
+    const event = objectValue(record.user_transcription_event);
+    return {
+      kind: "tentative_user_transcript",
+      rawType: "tentative_user_transcript",
+      text: stringValue(event.user_transcript) ?? stringValue(record.user_transcript) ?? stringValue(record.text) ?? ""
+    };
   }
 
   if (type === "agent_response") {
