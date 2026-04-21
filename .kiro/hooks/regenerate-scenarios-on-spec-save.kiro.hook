@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Regenerate Scenarios On Spec Save",
+  "description": "Regenerates VoiceGauntlet scenario previews when Kiro requirements change.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      ".kiro/specs/**/requirements.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A Kiro requirements file changed. Run the VoiceGauntlet parser against the edited requirements, regenerate adversarial scenario previews, and report requirement IDs with lint issues. Do not commit secrets or call paid APIs unless explicitly requested."
+  }
+}

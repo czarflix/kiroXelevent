@@ -1,0 +1,24 @@
+{
+  "name": "voicegauntlet",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Kiro-ready QA and red-team lab for ElevenLabs voice agents.",
+  "packageManager": "pnpm@10.27.0",
+  "scripts": {
+    "dev": "pnpm --filter @voicegauntlet/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "smoke:elevenlabs": "node scripts/smoke-elevenlabs.mjs",
+    "smoke:openai": "node scripts/smoke-openai.mjs",
+    "security:scan": "node scripts/security-scan.mjs",
+    "mcp": "pnpm --filter @voicegauntlet/mcp dev"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^25.0.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
+  }
+}

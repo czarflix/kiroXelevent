@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "voicegauntlet": {
+      "command": "pnpm",
+      "args": [
+        "--filter",
+        "@voicegauntlet/mcp",
+        "dev"
+      ],
+      "env": {
+        "VOICEGAUNTLET_SITE_URL": "${VOICEGAUNTLET_SITE_URL}",
+        "VOICEGAUNTLET_API_KEY": "${VOICEGAUNTLET_API_KEY}"
+      },
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}

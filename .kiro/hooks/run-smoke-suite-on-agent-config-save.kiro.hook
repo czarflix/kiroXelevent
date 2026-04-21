@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Run Smoke Suite On Agent Config Save",
+  "description": "Runs the seeded VoiceGauntlet smoke suite when agent config files are edited.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "agents.json",
+      "apps/web/**/*.ts",
+      "packages/core/src/elevenlabs.ts"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "pnpm test --filter @voicegauntlet/core",
+    "timeout": 120000
+  }
+}

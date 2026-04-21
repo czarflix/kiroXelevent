@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Security Scan On Agent Stop",
+  "description": "Scans the workspace for committed API keys and service credentials after agent work.",
+  "version": "1",
+  "when": {
+    "type": "agentResponse"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "node scripts/security-scan.mjs",
+    "timeout": 60000
+  }
+}
