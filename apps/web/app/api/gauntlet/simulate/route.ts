@@ -8,14 +8,15 @@ import {
   shrinkTranscript
 } from "@voicegauntlet/core";
 import { NextResponse } from "next/server";
-import { requireAuthenticatedRequest } from "../../../../lib/auth";
+import { requireAuthenticatedUser } from "../../../../lib/auth";
+import { persistLiveRun } from "../../../../lib/live-persistence";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  const authError = await requireAuthenticatedRequest();
-  if (authError) {
-    return authError;
+  const auth = await requireAuthenticatedUser();
+  if (auth.response || !auth.user) {
+    return auth.response;
   }
 
   const body = (await request.json().catch(() => ({}))) as {
@@ -75,12 +76,23 @@ export async function POST(request: Request) {
       providerRaw: simulation.raw,
       warnings: refinement.warning ? [refinement.warning] : []
     };
+    const failure = run.status === "failed" ? shrinkTranscript(run) : null;
+    const persisted = await persistLiveRun({
+      userId: auth.user.id,
+      sourcePath: body.sourcePath ?? ".kiro/specs/refundbot-demo/requirements.md",
+      specMarkdown: body.specMarkdown ?? demoDataset.specMarkdown,
+      requirements,
+      scenarios,
+      run,
+      failure
+    });
 
     return NextResponse.json({
       requirements,
       scenarios,
       run,
-      failure: run.status === "failed" ? shrinkTranscript(run) : null,
+      failure,
+      persisted,
       source: "elevenlabs_simulation",
       scenarioSource: refinement.source,
       warning: refinement.warning

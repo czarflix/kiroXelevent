@@ -1,4 +1,5 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import path from "node:path";
 
 const root = process.cwd();
@@ -13,6 +14,7 @@ if (!apiKey) {
 const customerVoiceId = process.env.ELEVENLABS_CUSTOMER_VOICE_ID || "21m00Tcm4TlvDq8ikWAM";
 const agentVoiceId = process.env.ELEVENLABS_AGENT_VOICE_ID || "Aw4FAjKCGjjNkVhN1Xmq";
 const outputPath = path.join(root, "apps/web/public/demo-audio/refundbot-generated-replay.mp3");
+const proofPath = path.join(root, "apps/web/public/demo-audio/refundbot-generated-replay.proof.json");
 
 const inputs = [
   {
@@ -56,8 +58,29 @@ if (!response.ok) {
 }
 
 await mkdir(path.dirname(outputPath), { recursive: true });
-await writeFile(outputPath, Buffer.from(await response.arrayBuffer()));
+const audio = Buffer.from(await response.arrayBuffer());
+await writeFile(outputPath, audio);
+const transcriptText = inputs.map((input) => input.text).join("\n");
+await writeFile(
+  proofPath,
+  `${JSON.stringify(
+    {
+      generatedAt: new Date().toISOString(),
+      provider: "ElevenLabs Text to Dialogue",
+      evidenceSource: "generated_replay",
+      modelId: "eleven_v3",
+      outputFormat: "mp3_44100_128",
+      seed: 424242,
+      sourceTranscriptSha256: sha256(transcriptText),
+      audioSha256: sha256(audio),
+      audioBytes: audio.byteLength
+    },
+    null,
+    2
+  )}\n`
+);
 console.log(`Generated ${outputPath}`);
+console.log(`Generated ${proofPath}`);
 
 async function loadLocalEnv(filePath) {
   let text;
@@ -81,4 +104,8 @@ async function loadLocalEnv(filePath) {
       process.env[key] = raw.replace(/^["']|["']$/g, "");
     }
   }
+}
+
+function sha256(input) {
+  return createHash("sha256").update(input).digest("hex");
 }

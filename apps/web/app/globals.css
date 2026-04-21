@@ -43,6 +43,36 @@ select {
   font: inherit;
 }
 
+input,
+textarea,
+select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--fg);
+  padding: 12px;
+  outline: none;
+}
+
+textarea {
+  min-height: 420px;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 button {
   cursor: pointer;
 }
@@ -143,6 +173,18 @@ button:disabled {
   transition: transform 160ms ease, opacity 160ms ease, border-color 160ms ease;
 }
 
+.button-row,
+.live-actions,
+.auth-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.button-row {
+  justify-content: flex-end;
+}
+
 .primary-button {
   background: var(--accent);
   color: var(--accent-ink);
@@ -215,6 +257,60 @@ button:disabled {
   display: grid;
   place-items: center;
   text-align: center;
+}
+
+.compact-workspace {
+  max-width: 820px;
+  justify-content: center;
+}
+
+.auth-card {
+  min-height: auto;
+}
+
+.auth-form {
+  margin: 24px 0;
+  align-items: end;
+}
+
+.auth-form label {
+  min-width: min(420px, 100%);
+  flex: 1;
+}
+
+.form-status {
+  margin: 0 0 18px;
+  color: var(--accent);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.live-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+.live-inputs,
+.live-results {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  min-height: auto;
+}
+
+.live-results h2 {
+  margin-bottom: 0;
+  font-size: clamp(30px, 4vw, 52px);
+}
+
+.live-actions {
+  margin: 8px 0 4px;
+}
+
+.scenario-list {
+  display: grid;
+  gap: 8px;
 }
 
 .stage-card h2 {
@@ -458,6 +554,14 @@ button:disabled {
     padding: 18px;
   }
 
+  .button-row,
+  .button-row .primary-button,
+  .button-row .secondary-button,
+  .live-actions .secondary-button,
+  .auth-form .primary-button {
+    width: 100%;
+  }
+
   .vg-header .primary-button {
     position: sticky;
     bottom: 10px;
@@ -466,6 +570,10 @@ button:disabled {
   }
 
   .vg-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .live-grid {
     grid-template-columns: 1fr;
   }
 

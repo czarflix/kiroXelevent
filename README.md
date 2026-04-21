@@ -69,7 +69,7 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Open `http://localhost:3000/demo` for the public judge demo and `http://localhost:3000/app` for authenticated live runs.
+Open `http://localhost:3000/demo` for the public judge demo and `http://localhost:3000/app` for authenticated live runs. The live workspace accepts an ElevenLabs agent ID, imports Kiro requirements, runs `simulate-conversation`, generates replay audio, runs a WebSocket audio probe, persists evidence to Supabase, exports Kiro tasks, and reruns the selected live scenario.
 
 ## Environment
 
@@ -83,6 +83,8 @@ Required for live provider-backed runs:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `SUPABASE_DB_URL`
 
+The ElevenLabs key must include the permissions needed for workspace/user checks, voices/TTS, Text to Dialogue, and Conversational AI agent reads/runs. At minimum the live agent flow needs `convai_read` plus generation permissions.
+
 Groq is used carefully because free-tier limits can rate-limit. Scenario refinement must cache by spec hash, run with concurrency `1`, retry `429` once when retry metadata is available, and fall back to deterministic templates.
 
 OpenAI is optional legacy fallback only. Do not rely on it for the final demo path.
@@ -93,11 +95,14 @@ OpenAI is optional legacy fallback only. Do not rely on it for the final demo pa
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm agent:ensure
 pnpm demo:audio
 pnpm smoke:elevenlabs
 pnpm security:scan
 pnpm mcp
 ```
+
+`pnpm agent:ensure` creates or reuses a real ElevenLabs agent named `VoiceGauntlet RefundBot` and writes its agent ID to `apps/web/.env.local`. `pnpm demo:audio` regenerates the public proof replay with ElevenLabs Text to Dialogue and writes a provider proof manifest next to the MP3.
 
 ## Demo Script
 

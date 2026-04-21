@@ -61,17 +61,20 @@ export async function synthesizeReplay(params: {
   apiKey: string;
   voiceId: string;
   text: string;
+  outputFormat?: string;
+  modelId?: string;
 }): Promise<ArrayBuffer> {
-  const response = await fetch(`${apiBase}/v1/text-to-speech/${params.voiceId}`, {
+  const outputFormat = params.outputFormat ? `?output_format=${encodeURIComponent(params.outputFormat)}` : "";
+  const response = await fetch(`${apiBase}/v1/text-to-speech/${params.voiceId}${outputFormat}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "xi-api-key": params.apiKey,
-      Accept: "audio/mpeg"
+      Accept: params.outputFormat?.startsWith("pcm_") ? "audio/pcm" : "audio/mpeg"
     },
     body: JSON.stringify({
       text: params.text,
-      model_id: "eleven_multilingual_v2",
+      model_id: params.modelId ?? "eleven_multilingual_v2",
       voice_settings: {
         stability: 0.52,
         similarity_boost: 0.75

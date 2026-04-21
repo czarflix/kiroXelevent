@@ -48,3 +48,10 @@ test("public demo loads core workflow", async ({ page }, testInfo) => {
   await page.screenshot({ path: testInfo.outputPath("voicegauntlet-demo.png"), fullPage: true });
   expect(errors).toEqual([]);
 });
+
+test("live workspace requires authentication before provider calls", async ({ page }) => {
+  await page.goto("/app");
+  await expect(page.getByRole("heading", { name: "VoiceGauntlet Live" })).toBeVisible();
+  await expect(page.getByText("Sign in is required before running live provider-backed gauntlets.")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Send sign-in link/i })).toBeVisible();
+});

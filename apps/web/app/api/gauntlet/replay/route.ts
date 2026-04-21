@@ -1,19 +1,21 @@
 import { createDialogueReplay, demoDataset, type TranscriptTurn } from "@voicegauntlet/core";
 import { NextResponse } from "next/server";
-import { requireAuthenticatedRequest } from "../../../../lib/auth";
+import { requireAuthenticatedUser } from "../../../../lib/auth";
+import { persistAudioArtifact } from "../../../../lib/live-persistence";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  const authError = await requireAuthenticatedRequest();
-  if (authError) {
-    return authError;
+  const auth = await requireAuthenticatedUser();
+  if (auth.response || !auth.user) {
+    return auth.response;
   }
 
   const body = (await request.json().catch(() => ({}))) as {
     transcript?: TranscriptTurn[];
     customerVoiceId?: string;
     agentVoiceId?: string;
+    runId?: string;
   };
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) {
@@ -37,11 +39,20 @@ export async function POST(request: Request) {
 
   try {
     const audio = await createDialogueReplay({ apiKey, inputs });
+    const artifact = await persistAudioArtifact({
+      userId: auth.user.id,
+      runId: body.runId ?? null,
+      bytes: audio,
+      mimeType: "audio/mpeg",
+      source: "generated_replay"
+    });
     return new Response(audio, {
       headers: {
         "Content-Type": "audio/mpeg",
         "Cache-Control": "no-store",
-        "X-VoiceGauntlet-Evidence": "generated_replay"
+        "X-VoiceGauntlet-Evidence": "generated_replay",
+        ...(artifact?.id ? { "X-VoiceGauntlet-Artifact-Id": artifact.id } : {}),
+        ...(artifact?.sha256 ? { "X-VoiceGauntlet-Artifact-Sha256": artifact.sha256 } : {})
       }
     });
   } catch (error) {

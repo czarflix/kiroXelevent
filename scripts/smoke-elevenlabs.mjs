@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
+const root = process.cwd();
+await loadLocalEnv(path.join(root, "apps/web/.env.local"));
+await loadLocalEnv(path.join(root, ".env.local"));
+
 const apiKey = process.env.ELEVENLABS_API_KEY;
 const agentId = process.env.ELEVENLABS_AGENT_ID;
 const voiceId = process.env.ELEVENLABS_CUSTOMER_VOICE_ID || "21m00Tcm4TlvDq8ikWAM";
@@ -78,4 +85,28 @@ if (agentId) {
   }
 } else {
   console.log("simulate skipped: ELEVENLABS_AGENT_ID is not set");
+}
+
+async function loadLocalEnv(filePath) {
+  let text;
+  try {
+    text = await readFile(filePath, "utf8");
+  } catch {
+    return;
+  }
+  for (const line of text.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) {
+      continue;
+    }
+    const equals = trimmed.indexOf("=");
+    if (equals === -1) {
+      continue;
+    }
+    const key = trimmed.slice(0, equals).trim();
+    const raw = trimmed.slice(equals + 1).trim();
+    if (!process.env[key]) {
+      process.env[key] = raw.replace(/^["']|["']$/g, "");
+    }
+  }
 }

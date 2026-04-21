@@ -1,19 +1,24 @@
 import { createSignedConversationUrl, getConversationAudio, getConversationDetails } from "@voicegauntlet/core";
 import { NextResponse } from "next/server";
-import { requireAuthenticatedRequest } from "../../../../lib/auth";
+import { requireAuthenticatedUser } from "../../../../lib/auth";
+import { runElevenLabsWebSocketProbe } from "../../../../lib/elevenlabs-websocket-probe";
+import { persistAudioArtifact } from "../../../../lib/live-persistence";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  const authError = await requireAuthenticatedRequest();
-  if (authError) {
-    return authError;
+  const auth = await requireAuthenticatedUser();
+  if (auth.response || !auth.user) {
+    return auth.response;
   }
 
   const body = (await request.json().catch(() => ({}))) as {
     agentId?: string;
     conversationId?: string;
     includeAudio?: boolean;
+    runWebSocket?: boolean;
+    callerText?: string;
+    callerVoiceId?: string;
   };
   const apiKey = process.env.ELEVENLABS_API_KEY;
   const agentId = body.agentId ?? process.env.ELEVENLABS_AGENT_ID;
@@ -26,13 +31,21 @@ export async function POST(request: Request) {
     try {
       const details = await getConversationDetails(apiKey, body.conversationId);
       let audioBase64: string | null = null;
+      let artifact: Awaited<ReturnType<typeof persistAudioArtifact>> = null;
       if (body.includeAudio && details.hasAudio && details.hasUserAudio && details.hasResponseAudio) {
         const audio = await getConversationAudio(apiKey, body.conversationId);
         audioBase64 = Buffer.from(audio).toString("base64");
+        artifact = await persistAudioArtifact({
+          userId: auth.user.id,
+          bytes: audio,
+          mimeType: "audio/mpeg",
+          source: "recorded_call"
+        });
       }
       return NextResponse.json({
         conversationId: details.conversationId,
         transcript: details.transcript,
+        artifact,
         audioEvidence: {
           source: details.hasAudio && details.hasUserAudio && details.hasResponseAudio ? "recorded_call" : "none",
           label:
@@ -64,6 +77,48 @@ export async function POST(request: Request) {
   }
 
   try {
+    if (body.runWebSocket) {
+      const probe = await runElevenLabsWebSocketProbe({
+        apiKey,
+        agentId,
+        callerText: body.callerText ?? "I was charged twice and need my refund handled now.",
+        callerVoiceId: body.callerVoiceId ?? process.env.ELEVENLABS_CUSTOMER_VOICE_ID ?? "21m00Tcm4TlvDq8ikWAM"
+      });
+      let artifact: Awaited<ReturnType<typeof persistAudioArtifact>> = null;
+      if (probe.conversationAudioBase64) {
+        const audio = Buffer.from(probe.conversationAudioBase64, "base64");
+        artifact = await persistAudioArtifact({
+          userId: auth.user.id,
+          bytes: audio,
+          mimeType: "audio/mpeg",
+          source: "recorded_call"
+        });
+      }
+      return NextResponse.json({
+        ...probe,
+        artifact,
+        audioEvidence: {
+          source: probe.conversationAudioBase64 ? "recorded_call" : probe.agentAudioBase64 ? "turn_player" : "none",
+          label: probe.conversationAudioBase64
+            ? "Recorded ElevenLabs call"
+            : probe.agentAudioBase64
+              ? "Live WebSocket agent audio chunks captured"
+              : "WebSocket probe transcript only",
+          url: probe.conversationAudioBase64 ? `data:audio/mpeg;base64,${probe.conversationAudioBase64}` : null,
+          turnAudio: [],
+          conversationId: probe.conversationId,
+          hasUserAudio: probe.hasUserAudio,
+          hasResponseAudio: probe.hasResponseAudio,
+          generatedAt: null,
+          warning:
+            probe.warning ??
+            (probe.agentAudioBase64
+              ? "Agent audio chunks were captured from the WebSocket, but no complete recorded call audio was returned."
+              : null)
+        }
+      });
+    }
+
     const signedUrl = await createSignedConversationUrl(apiKey, agentId);
     return NextResponse.json({
       signedUrl,

@@ -15,7 +15,10 @@
 - [x] 13. Add Groq server-side refinement with cache, concurrency 1, 429 retry, and deterministic fallback
 - [x] 14. Verify local MCP setup from `.kiro/settings/mcp.json` using `pnpm mcp`
 - [x] 15. Run package install, tests, typecheck, build, security scan, and browser proof
-- [ ] 16. Run ElevenLabs simulation, replay/audio, and conversation-audio smoke checks
-- [ ] 17. Deploy to Vercel and verify public `/demo`, authenticated `/app`, and `/api/health`
-- [ ] 18. Record final 60-90 second submission video from production
-- [ ] 19. Post on X, LinkedIn, Instagram, and TikTok
+- [x] 16. Replace `/app` seeded shell with authenticated live workspace, agent/spec inputs, live simulation, replay, probe, export, and rerun controls
+- [x] 17. Persist live runs, turns, results, failures, audio artifacts, and fix exports to Supabase
+- [x] 18. Complete WebSocket audio probe path with signed URL, caller audio chunk, ping/pong, event capture, and conversation-audio fetch
+- [ ] 19. Run ElevenLabs simulation, replay/audio, and conversation-audio smoke checks with a key that has the required permissions
+- [ ] 20. Deploy to Vercel and verify public `/demo`, authenticated `/app`, and `/api/health`
+- [ ] 21. Record final 60-90 second submission video from production
+- [ ] 22. Post on X, LinkedIn, Instagram, and TikTok
