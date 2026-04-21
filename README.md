@@ -44,13 +44,13 @@ The MCP package is private to this repo, so the README does not point to an unpu
 
 ```bash
 pnpm install
-pnpm mcp
+pnpm --silent mcp
 ```
 
 Kiro can use the checked-in `.kiro/settings/mcp.json`, which runs:
 
 ```bash
-pnpm mcp
+pnpm --silent mcp
 ```
 
 Available MCP tools:
@@ -100,7 +100,7 @@ pnpm demo:audio
 pnpm smoke:elevenlabs
 pnpm smoke:elevenlabs:ws
 pnpm security:scan
-pnpm mcp
+pnpm --silent mcp
 ```
 
 `pnpm agent:ensure` creates or reuses a real ElevenLabs agent named `VoiceGauntlet RefundBot` and writes its agent ID to `apps/web/.env.local`. `pnpm demo:audio` regenerates the public proof replay with ElevenLabs Text to Dialogue and writes a provider proof manifest next to the MP3. `pnpm smoke:elevenlabs:ws` proves signed URL creation, a live WebSocket session, agent response audio chunks, and conversation metadata fetch.
@@ -155,7 +155,7 @@ Post on X, LinkedIn, Instagram, and TikTok.
 - Generated replay is never called a recorded call.
 - Green rerun actually passes the evaluator.
 - No secrets are committed, logged, screenshotted, or bundled into browser code.
-- Final video is public, 60-90 seconds, and shows the exact working app behavior.
+- Final packaging step: record a public 60-90 second video from production and post the social clips.
 
 ## License
 

@@ -155,14 +155,7 @@ export function LiveWorkspace({
         throw new Error(payload.error ?? "Audio probe failed.");
       }
       setProbe(payload);
-      if (payload.audioEvidence?.source === "recorded_call" && run) {
-        setRun({
-          ...run,
-          audioEvidence: payload.audioEvidence,
-          audioUrl: payload.audioEvidence.url
-        });
-      }
-      setStatus(payload.warning ?? "WebSocket probe completed.");
+      setStatus(payload.warning ?? "WebSocket probe completed. Generate replay to attach hearable evidence to the displayed simulation transcript.");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Audio probe failed.");
     } finally {

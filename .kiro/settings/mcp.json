@@ -3,6 +3,7 @@
     "voicegauntlet": {
       "command": "pnpm",
       "args": [
+        "--silent",
         "mcp"
       ],
       "disabled": false,
