@@ -94,7 +94,7 @@ export async function persistLiveRun(input: PersistLiveRunInput): Promise<Persis
             expected_behavior: scenario.expectedBehavior,
             tags: scenario.tags,
             severity: scenario.severity,
-            seed: scenario.seed
+            seed: toPostgresInteger(scenario.seed)
           },
           { onConflict: "requirement_id,scenario_key" }
         )
@@ -314,4 +314,9 @@ async function ensureLiveProject(userId: string): Promise<{ organizationId: stri
 
 function sha256(input: string | Buffer) {
   return createHash("sha256").update(input).digest("hex");
+}
+
+function toPostgresInteger(value: number) {
+  const max = 2_147_483_647;
+  return Math.abs(Math.trunc(value)) % max;
 }
