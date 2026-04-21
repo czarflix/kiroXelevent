@@ -111,6 +111,11 @@ export function GauntletConsole({ data, mode = "demo" }: { data: DemoData; mode?
   }
 
   async function rerunGreen() {
+    if (mode === "app") {
+      await runGauntlet();
+      return;
+    }
+
     moveTo("running");
     setError(null);
     try {
@@ -335,7 +340,11 @@ function StageContent(props: {
       <div className="stage-card">
         <div className="micro-label">Green Rerun</div>
         <h2 className="serif">VoiceGauntlet Certified.</h2>
-        <p className="lede">The hardened behavior asks for verification, refuses to claim backend success during a tool outage, and offers escalation.</p>
+        <p className="lede">
+          {props.mode === "demo"
+            ? "The hardened behavior asks for verification, refuses to claim backend success during a tool outage, and offers escalation."
+            : "The selected live simulation passed the current VoiceGauntlet evaluator criteria."}
+        </p>
         <Transcript turns={props.run.transcript} compact />
       </div>
     );
@@ -384,7 +393,7 @@ function primaryAction(stage: Stage, status: RunResult["status"], mode: "demo" |
     return "Export Kiro task";
   }
   if (stage === "task") {
-    return "Rerun green";
+    return mode === "demo" ? "Rerun green" : "Run live simulation again";
   }
   return status === "passed" ? "Review failure" : "Run gauntlet";
 }
