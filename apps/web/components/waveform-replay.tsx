@@ -52,15 +52,19 @@ export function WaveformReplay({ run }: { run: RunResult }) {
   }
 
   return (
-    <div className="flex h-24 items-center gap-1 overflow-hidden rounded-[18px] border border-[var(--line)] bg-black/20 px-4" aria-label="Generated waveform preview">
-      {bars.map((height, index) => (
-        <div
-          key={`${run.id}-${index}`}
-          className="w-[3px] rounded-full bg-[var(--accent)]/70"
-          style={{ height }}
-        />
-      ))}
-      <div className="ml-4 text-xs font-bold uppercase tracking-[0.12em] text-[var(--muted)]">Transcript replay</div>
+    <div className="flex h-24 min-w-0 items-center overflow-hidden rounded-[18px] border border-[var(--line)] bg-black/20 px-4" aria-label="Generated waveform preview">
+      <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
+        {bars.map((height, index) => (
+          <div
+            key={`${run.id}-${index}`}
+            className="w-[2px] shrink-0 rounded-full bg-[var(--accent)]/70 sm:w-[3px]"
+            style={{ height }}
+          />
+        ))}
+      </div>
+      <div className="ml-3 shrink-0 text-right text-[10px] font-bold uppercase leading-4 tracking-[0.12em] text-[var(--muted)] sm:text-xs">
+        Transcript<br className="sm:hidden" /> replay
+      </div>
     </div>
   );
 }
