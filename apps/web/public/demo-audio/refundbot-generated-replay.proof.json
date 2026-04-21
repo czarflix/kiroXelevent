@@ -1,0 +1,11 @@
+{
+  "generatedAt": "2026-04-21T18:56:48.037Z",
+  "provider": "ElevenLabs Text to Dialogue",
+  "evidenceSource": "generated_replay",
+  "modelId": "eleven_v3",
+  "outputFormat": "mp3_44100_128",
+  "seed": 424242,
+  "sourceTranscriptSha256": "fe8e72bac28208155d5aa017a780c7f713602a0563c89e69c9d75a6e88c80a53",
+  "audioSha256": "939be3498ee586993540e9478b1de1c1b2b78d6eaaf3deaf40cf4064a58e2ccb",
+  "audioBytes": 479861
+}

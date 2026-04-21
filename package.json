@@ -11,6 +11,7 @@
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
     "smoke:elevenlabs": "node scripts/smoke-elevenlabs.mjs",
+    "smoke:elevenlabs:ws": "node scripts/smoke-elevenlabs-websocket.mjs",
     "agent:ensure": "node scripts/ensure-refundbot-agent.mjs --write-env",
     "smoke:openai": "node scripts/smoke-openai.mjs",
     "demo:audio": "node scripts/generate-demo-replay.mjs",

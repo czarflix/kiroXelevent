@@ -98,11 +98,12 @@ pnpm build
 pnpm agent:ensure
 pnpm demo:audio
 pnpm smoke:elevenlabs
+pnpm smoke:elevenlabs:ws
 pnpm security:scan
 pnpm mcp
 ```
 
-`pnpm agent:ensure` creates or reuses a real ElevenLabs agent named `VoiceGauntlet RefundBot` and writes its agent ID to `apps/web/.env.local`. `pnpm demo:audio` regenerates the public proof replay with ElevenLabs Text to Dialogue and writes a provider proof manifest next to the MP3.
+`pnpm agent:ensure` creates or reuses a real ElevenLabs agent named `VoiceGauntlet RefundBot` and writes its agent ID to `apps/web/.env.local`. `pnpm demo:audio` regenerates the public proof replay with ElevenLabs Text to Dialogue and writes a provider proof manifest next to the MP3. `pnpm smoke:elevenlabs:ws` proves signed URL creation, a live WebSocket session, agent response audio chunks, and conversation metadata fetch.
 
 ## Demo Script
 
