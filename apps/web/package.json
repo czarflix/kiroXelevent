@@ -18,7 +18,7 @@
     "@voicegauntlet/core": "workspace:*",
     "framer-motion": "^12.38.0",
     "lucide-react": "^0.561.0",
-    "next": "^16.2.4",
+    "next": "^16.2.11",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-resizable-panels": "^4.0.9",
