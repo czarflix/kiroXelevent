@@ -2,7 +2,7 @@
 
 ## Introduction
 
-VoiceGauntlet is a Kiro-built QA and red-team lab for ElevenLabs voice agents. It imports Kiro requirements, generates adversarial customer scenarios, runs ElevenLabs simulations, maps results back to requirement IDs, produces truthful audio evidence, shrinks failures, and exports Kiro fix tasks.
+VoiceGauntlet is a QA and red-team lab for ElevenLabs voice agents, built with Kiro. Ayaan owns the problem definition, architecture, evaluation design, implementation review, and testing. The system imports Kiro requirements, generates synthetic adversarial caller scenarios, runs authenticated ElevenLabs simulations when configured, maps results back to requirement IDs, preserves evidence labels, shrinks failures, and exports Kiro fix tasks.
 
 ## Requirements
 
@@ -23,7 +23,7 @@ VoiceGauntlet is a Kiro-built QA and red-team lab for ElevenLabs voice agents. I
 #### Acceptance Criteria
 
 1. WHEN requirements are parsed for normal live execution, THE SYSTEM SHALL generate one to three compact adversarial scenarios per requirement
-2. WHEN the public proof flow is shown, THE SYSTEM SHALL expose a 20-scenario coverage suite for the hook claim
+2. WHEN the public proof flow is shown, THE SYSTEM SHALL expose a 20-scenario synthetic coverage suite for the hook claim
 3. WHEN generating scenarios, THE SYSTEM SHALL include anger, prompt injection, tool failure, bilingual, privacy, ambiguity, chargeback, conversation repair, and escalation variants where relevant
 4. WHEN scenarios are generated, THE SYSTEM SHALL preserve the requirement ID on every scenario
 

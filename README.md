@@ -1,18 +1,18 @@
 # VoiceGauntlet
 
-VoiceGauntlet is a **Kiro-built** QA and red-team lab for ElevenLabs voice agents. It reads Kiro specs, generates adversarial customer scenarios, runs real ElevenLabs agent tests, maps failures to requirement IDs, produces hearable evidence, shrinks failures, and exports Kiro hardening tasks.
+VoiceGauntlet is a QA and red-team lab for ElevenLabs voice agents, built with Kiro. It reads Kiro specs, generates synthetic adversarial caller scenarios, and maps evaluator results to requirement IDs. The public demo is fixture-backed; authenticated environments can run ElevenLabs simulations and live-agent WebSocket flows with explicit evidence labels.
 
-> Hook: "I built 20 angry AI customers that attack your ElevenLabs voice agent and break it before real users do."
+> Hook: "I built 20 synthetic adversarial caller scenarios to exercise an ElevenLabs voice agent before real users depend on it."
 
 ## What It Does
 
-Normal voice-agent demos prove the happy path. VoiceGauntlet attacks the paths that break production agents: angry refunds, duplicate charges, prompt injection, privacy boundaries, tool outages, bilingual callers, and escalation pressure.
+Normal voice-agent demos emphasize the happy path. VoiceGauntlet exercises failure modes relevant to deployed agents: angry refunds, duplicate charges, prompt injection, privacy boundaries, tool outages, bilingual callers, and escalation pressure.
 
 The final product loop is:
 
 ```text
-Kiro spec -> 20 adversarial scenarios -> Live Monitor audio -> ElevenLabs simulation
--> red failure -> Forensic Replay -> shrink failure -> export Kiro task -> rerun green
+Kiro spec -> 20 deterministic synthetic scenarios -> fixture demo or authenticated provider run
+-> labeled result -> Forensic Replay -> shrink failure -> export Kiro task -> rerun
 ```
 
 ## Truth Model
@@ -30,6 +30,8 @@ No fake run buttons, no fake waveform, and no provider failure disguised as succ
 ## Kiro Usage
 
 This repo is built with Kiro for ElevenHacks Hack #5. The root `.kiro` directory is part of the product, not decoration:
+
+Ayaan Ahmad owned the problem definition, architecture, evaluation design, implementation review, and test verification. Kiro supported the spec-driven workflow, code generation, and task export; it was a development tool rather than the project owner.
 
 - `.kiro/specs/voicegauntlet`: product requirements, design, and implementation tasks.
 - `.kiro/specs/refundbot-demo`: demo agent requirements that generate adversarial scenarios.
@@ -106,11 +108,11 @@ pnpm --silent mcp
 
 `pnpm agent:ensure` creates or reuses a real ElevenLabs agent named `VoiceGauntlet RefundBot` and writes its agent ID to `apps/web/.env.local`. `pnpm demo:audio` regenerates the public proof replay with ElevenLabs Text to Dialogue and writes a provider proof manifest next to the MP3. `pnpm smoke:elevenlabs:ws` proves signed URL creation, a live WebSocket session, agent response audio chunks, and conversation metadata fetch.
 
-## Production Proof
+## Historical deployment evidence
 
-Production URL: [https://kiro-x-elevent.vercel.app](https://kiro-x-elevent.vercel.app)
+Previously verified deployment URL: [https://kiro-x-elevent.vercel.app](https://kiro-x-elevent.vercel.app)
 
-Verified on 2026-04-22 IST:
+The following evidence was recorded on 2026-04-22 IST in commit `d766552a4d1cb76e919856d54912073f13f0c068`. It is a dated deployment snapshot, not a claim that the current repository head was freshly deployed or that the system is production-ready. This local positioning repair did not mutate or reverify provider configuration.
 
 - `/api/health` reports ElevenLabs, Groq, and Supabase configured.
 - Public `/demo` passes desktop and mobile Playwright checks, including generated audio playback metadata.
@@ -123,7 +125,7 @@ Verified on 2026-04-22 IST:
 
 Target length: 60-90 seconds.
 
-1. Say the hook in the first five seconds.
+1. Say the synthetic-scenario hook in the first five seconds.
 2. Show `.kiro/specs/refundbot-demo/requirements.md`.
 3. Show the 20-scenario coverage map.
 4. In `/app`, start Live Monitor and let the viewer hear synthetic caller audio plus ElevenLabs agent audio chunks.
@@ -138,9 +140,9 @@ Target length: 60-90 seconds.
 ```text
 I built VoiceGauntlet for #ElevenHacks #CodeWithKiro.
 
-20 angry AI customers attack your ElevenLabs voice agent before real users do.
+20 synthetic adversarial caller scenarios exercise your ElevenLabs voice agent before real users depend on it.
 
-It reads your Kiro spec, generates adversarial calls, runs ElevenLabs tests, plays audio evidence, shrinks failures, and exports Kiro fix tasks.
+It reads your Kiro spec, generates adversarial scenarios, runs fixture-backed demos or authenticated ElevenLabs simulations, labels audio evidence, shrinks failures, and exports Kiro fix tasks.
 
 @kirodotdev @elevenlabsio
 ```
