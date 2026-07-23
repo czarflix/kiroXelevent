@@ -4,6 +4,20 @@
   "private": true,
   "description": "Kiro-built QA and red-team lab for ElevenLabs voice agents.",
   "packageManager": "pnpm@10.27.0",
+  "pnpm": {
+    "overrides": {
+      "@hono/node-server": "2.0.10",
+      "body-parser": "2.3.0",
+      "esbuild": "0.28.1",
+      "fast-uri": "3.1.4",
+      "hono": "4.12.27",
+      "ip-address": "10.1.1",
+      "postcss": "8.5.10",
+      "qs": "6.15.2",
+      "sharp": "0.35.0",
+      "ws": "8.21.0"
+    }
+  },
   "scripts": {
     "dev": "pnpm --filter @voicegauntlet/web dev",
     "build": "pnpm -r build",
@@ -22,6 +36,7 @@
     "@playwright/test": "^1.57.0",
     "@types/node": "^25.0.0",
     "typescript": "^6.0.3",
+    "vite": "8.0.16",
     "vitest": "^4.1.5"
   }
 }
