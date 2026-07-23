@@ -52,9 +52,11 @@ test("public demo loads core workflow", async ({ page }, testInfo) => {
   expect(errors).toEqual([]);
 });
 
-test("live workspace requires authentication before provider calls", async ({ page }) => {
+test("live workspace blocks provider calls without authenticated configuration", async ({ page }) => {
   await page.goto("/app");
   await expect(page.getByRole("heading", { name: "VoiceGauntlet Live" })).toBeVisible();
-  await expect(page.getByText("Sign in is required before running live provider-backed gauntlets.")).toBeVisible();
+  await expect(
+    page.getByText(/Supabase auth is not configured for this deployment|Sign in is required before running live provider-backed gauntlets/)
+  ).toBeVisible();
   await expect(page.getByRole("button", { name: /Send sign-in link/i })).toBeVisible();
 });

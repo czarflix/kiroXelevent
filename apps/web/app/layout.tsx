@@ -16,7 +16,7 @@ const space = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: "VoiceGauntlet",
-  description: "Kiro-built QA and red-team lab for ElevenLabs voice agents."
+  description: "QA and red-team lab for ElevenLabs voice agents, built with Kiro."
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

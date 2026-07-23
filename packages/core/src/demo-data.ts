@@ -69,7 +69,7 @@ const failingRun = evaluateTranscript(worstScenario, failingTranscript, {
   runSource: "demo_fixture",
   audioEvidence: {
     source: "generated_replay" as const,
-    label: "Generated replay from real failure transcript",
+    label: "Generated replay from fixture failure transcript",
     url: "/demo-audio/refundbot-generated-replay.mp3",
     turnAudio: [],
     conversationId: null,
