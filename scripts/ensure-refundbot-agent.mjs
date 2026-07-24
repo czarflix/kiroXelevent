@@ -33,7 +33,7 @@ async function createRefundBot() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       name: "VoiceGauntlet RefundBot",
-      tags: ["VoiceGauntlet", "ElevenHacks", "Kiro"],
+      tags: ["VoiceGauntlet", "voice-testing", "Kiro"],
       conversation_config: {
         agent: {
           first_message: "Thanks for calling RefundBot. I can help with refunds after I verify your identity.",

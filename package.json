@@ -21,6 +21,7 @@
   "scripts": {
     "dev": "pnpm --filter @voicegauntlet/web dev",
     "build": "pnpm -r build",
+    "check:public-copy": "node scripts/check-public-copy.mjs",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",

@@ -14,7 +14,7 @@ if (!apiKey) {
 const customerVoiceId = process.env.ELEVENLABS_CUSTOMER_VOICE_ID || "21m00Tcm4TlvDq8ikWAM";
 const agentVoiceId = process.env.ELEVENLABS_AGENT_VOICE_ID || "Aw4FAjKCGjjNkVhN1Xmq";
 const outputPath = path.join(root, "apps/web/public/demo-audio/refundbot-generated-replay.mp3");
-const proofPath = path.join(root, "apps/web/public/demo-audio/refundbot-generated-replay.proof.json");
+const metadataPath = path.join(root, "apps/web/public/demo-audio/refundbot-generated-replay.metadata.json");
 
 const inputs = [
   {
@@ -62,7 +62,7 @@ const audio = Buffer.from(await response.arrayBuffer());
 await writeFile(outputPath, audio);
 const transcriptText = inputs.map((input) => input.text).join("\n");
 await writeFile(
-  proofPath,
+  metadataPath,
   `${JSON.stringify(
     {
       generatedAt: new Date().toISOString(),
@@ -80,7 +80,7 @@ await writeFile(
   )}\n`
 );
 console.log(`Generated ${outputPath}`);
-console.log(`Generated ${proofPath}`);
+console.log(`Generated ${metadataPath}`);
 
 async function loadLocalEnv(filePath) {
   let text;

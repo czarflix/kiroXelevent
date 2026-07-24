@@ -52,7 +52,7 @@ export function AuthGate({ reason }: { reason: string }) {
           </div>
           {status ? <p className="form-status">{status}</p> : null}
           <p className="lede">
-            The public judge proof remains available at <a href="/demo">/demo</a>.
+            The fixture-backed public demo remains available at <a href="/demo">/demo</a>.
           </p>
         </article>
       </section>

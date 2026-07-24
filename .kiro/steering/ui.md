@@ -13,7 +13,7 @@ Use a minimalist Taste-style product system copied/adapted from the owner's `cza
 - 6-10px radii
 - sparse controls
 - one primary action per stage
-- serif only for decisive proof titles
+- serif only for primary result titles
 - geometric sans for operational UI
 - tabular numbers for counts, timing, confidence, and chunks
 - restrained semantic red, amber, and green
@@ -32,7 +32,7 @@ Desktop should use a centered workspace with the transcript and audio evidence a
 
 Live Monitor styling:
 
-- show it as a quiet proof strip, not a debug console
+- show it as a quiet status strip, not a debug console
 - labels must read `Live agent stream`, `Customer audio: synthetic caller`, and `Agent audio: ElevenLabs WebSocket`
 - show conversation ID, caller chunks, agent chunks, and recorded-call check without exposing raw provider payloads
 - never call transient WebSocket chunks a recorded call

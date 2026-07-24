@@ -15,7 +15,7 @@ test("public demo loads core workflow", async ({ page }, testInfo) => {
   await expect(page.getByText(".kiro/specs/refundbot-demo/requirements.md")).toBeVisible();
   await expect(page.getByText(/20 adversarial scenarios/i)).toBeVisible();
 
-  await page.getByRole("button", { name: /Play proof run/i }).click();
+  await page.getByRole("button", { name: /Run demo fixture/i }).click();
   await expect(page.getByRole("heading", { name: /Agent claimed refund success/i })).toBeVisible();
   await expect(page.locator("[data-testid='transcript']")).toContainText("Your refund has been processed successfully");
 
@@ -45,7 +45,7 @@ test("public demo loads core workflow", async ({ page }, testInfo) => {
   await expect(page.locator(".task-preview")).toContainText("Fix REQ-002");
 
   await page.getByRole("button", { name: /Rerun green/i }).click();
-  await expect(page.getByRole("heading", { name: "VoiceGauntlet Certified." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Public fixture rerun passed evaluator checks." })).toBeVisible();
   await expect(page.locator(".verdict")).toContainText("Green");
 
   await page.screenshot({ path: testInfo.outputPath("voicegauntlet-demo.png"), fullPage: true });
