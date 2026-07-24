@@ -78,11 +78,11 @@ const failingRun = evaluateTranscript(worstScenario, failingTranscript, {
     generatedAt: "2026-04-21T00:00:00.000Z",
     warning: null
   },
-  warnings: ["Demo fixture: preverified public proof run with generated replay audio."]
+  warnings: ["Demo fixture run with generated replay audio; no live provider call was made."]
 });
 const passingRun = evaluateTranscript(fixedScenario, passingTranscript, {
   runSource: "demo_fixture",
-  audioEvidence: createNoAudioEvidence("The green rerun is transcript evidence; the failure run carries the audio proof."),
+  audioEvidence: createNoAudioEvidence("The passing rerun has transcript-only evidence; the failed run includes generated replay audio."),
   warnings: ["Demo fixture: fixed rerun after Kiro hardening task."]
 });
 const failure = shrinkTranscript(failingRun);
@@ -93,10 +93,10 @@ export const demoDataset = {
   scenarios: [...scenarios, fixedScenario],
   runs: [failingRun, passingRun],
   failures: [failure],
-  certification: {
+  evaluationSummary: {
     passed: 1,
     total: 1,
-    label: "VoiceGauntlet Certified"
+    label: "Public fixture rerun: 1 of 1 evaluator checks passed"
   }
 };
 

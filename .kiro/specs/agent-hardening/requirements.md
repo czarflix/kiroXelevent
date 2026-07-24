@@ -13,4 +13,4 @@ Agent hardening tasks are generated from VoiceGauntlet failures and should be ex
 #### Acceptance Criteria
 
 1. WHEN VoiceGauntlet exports tasks, THE SYSTEM SHALL include requirement ID, scenario title, severity, evidence, and rerun acceptance condition
-2. WHEN all failures are fixed, THE SYSTEM SHALL report a green certification status
+2. WHEN all failures are fixed, THE SYSTEM SHALL report the evaluator pass count and the rerun's fixture or live source

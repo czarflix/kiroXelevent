@@ -11,7 +11,7 @@ type DemoData = {
   scenarios: Scenario[];
   runs: RunResult[];
   failures: Failure[];
-  certification: {
+  evaluationSummary: {
     passed: number;
     total: number;
     label: string;
@@ -162,10 +162,10 @@ export function GauntletConsole({ data, mode = "demo" }: { data: DemoData; mode?
             <div className="provenance-row">
               <span>Built with Kiro</span>
               <span>ElevenLabs</span>
-              <span>{mode === "demo" ? "Public proof" : "Live workspace"}</span>
+              <span>{mode === "demo" ? "Demo fixture" : "Live workspace"}</span>
             </div>
             <h1 className="serif">VoiceGauntlet</h1>
-            <p>Angry synthetic customers attack your voice agent before real users do.</p>
+            <p>Run synthetic customer scenarios against a voice agent before using it with real callers.</p>
           </div>
           <button className="primary-button" type="button" onClick={handlePrimary} disabled={stage === "running"}>
             {stage === "running" ? <Loader2 className="spin" size={16} /> : <Play size={16} />}
@@ -211,7 +211,7 @@ export function GauntletConsole({ data, mode = "demo" }: { data: DemoData; mode?
                   <ShieldCheck size={20} />
                   <span>Ready</span>
                 </div>
-                <p className="side-summary">No run has executed yet. Start from the Kiro spec to produce evidence.</p>
+                <p className="side-summary">No run has executed yet. Start from the Kiro spec to record a result.</p>
               </>
             ) : (
               <>
@@ -243,8 +243,8 @@ export function GauntletConsole({ data, mode = "demo" }: { data: DemoData; mode?
             </div>
 
             <div className="trace-card">
-              <div className="micro-label">Proof Monitor</div>
-              <strong>{mode === "demo" ? "Public proof run" : "Live workspace"}</strong>
+              <div className="micro-label">Run Source</div>
+              <strong>{mode === "demo" ? "Demo fixture run" : "Live workspace"}</strong>
               <span>{mode === "demo" ? "No live provider call is made on /demo." : "Live Monitor is available in /app."}</span>
             </div>
 
@@ -283,7 +283,7 @@ function StageContent(props: {
       <div className="stage-card centered">
         <Loader2 className="spin" size={26} />
         <h2 className="serif">Running gauntlet</h2>
-        <p>VoiceGauntlet is executing the scenario and preserving the provider source on the result.</p>
+        <p>VoiceGauntlet is executing the scenario and recording its source on the result.</p>
       </div>
     );
   }
@@ -292,7 +292,7 @@ function StageContent(props: {
     return (
       <div className="stage-card">
         <div className="micro-label">Blocked</div>
-        <h2 className="serif">The run failed honestly.</h2>
+        <h2 className="serif">The run could not complete.</h2>
         <p>{props.error}</p>
       </div>
     );
@@ -332,7 +332,7 @@ function StageContent(props: {
       <div className="stage-card">
         <div className="micro-label">Audio Evidence</div>
         <h2 className="serif">Forensic Replay.</h2>
-        <p className="lede">Hearable proof generated from the actual failing transcript. The source label stays explicit: recorded call only when provider metadata proves it, generated replay when ElevenLabs creates audio from transcript.</p>
+        <p className="lede">Replay audio created from the failing transcript. The source label remains explicit: recorded call only when provider metadata confirms it, and generated replay when ElevenLabs creates audio from a transcript.</p>
         <WaveformReplay run={props.run} />
       </div>
     );
@@ -371,7 +371,9 @@ function StageContent(props: {
     return (
       <div className="stage-card">
         <div className="micro-label">Green Rerun</div>
-        <h2 className="serif">VoiceGauntlet Certified.</h2>
+        <h2 className="serif">
+          {props.mode === "demo" ? "Public fixture rerun passed evaluator checks." : "Selected live simulation passed evaluation."}
+        </h2>
         <p className="lede">
           {props.mode === "demo"
             ? "The hardened behavior asks for verification, refuses to claim backend success during a tool outage, and offers escalation."
@@ -410,7 +412,7 @@ function Transcript({ turns, compact = false }: { turns: RunResult["transcript"]
 
 function primaryAction(stage: Stage, status: RunResult["status"], mode: "demo" | "app") {
   if (stage === "spec" || stage === "error") {
-    return mode === "demo" ? "Play proof run" : "Run live simulation";
+    return mode === "demo" ? "Run demo fixture" : "Run live simulation";
   }
   if (stage === "running") {
     return "Running";

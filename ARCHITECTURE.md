@@ -17,7 +17,7 @@ flowchart LR
 ## Evidence levels
 
 - **Synthetic scenario:** generated input with no provider execution.
-- **Fixture:** checked-in deterministic proof artifact used by the public demo.
+- **Fixture:** checked-in deterministic data used by the public demo.
 - **Generated replay:** audio or transcript generated from a known trace.
 - **Recorded interaction:** provider metadata and audio identify a real interaction.
 - **Live integration:** authenticated provider call with runtime metadata.

@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "Verify Public Demo",
+  "description": "Checks run instructions, source labels, demo steps, and secret-handling guidance.",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "README.md",
+      ".kiro/**/*",
+      "apps/web/**/*"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Check the public demo documentation, Kiro configuration, license, run instructions, local MCP setup, ElevenLabs simulation and audio labels, demo walkthrough, and secret-handling guidance. Report concrete inconsistencies concisely."
+  }
+}

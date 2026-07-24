@@ -4,7 +4,7 @@ inclusion: always
 
 # Product Steering
 
-VoiceGauntlet helps teams break ElevenLabs voice agents before customers do. Prioritize traceability, proof, and demo clarity over generic analytics.
+VoiceGauntlet tests ElevenLabs voice agents against adversarial customer scenarios. Prioritize traceability, explicit source labels, and clear results over generic analytics.
 
 Every feature should answer one of these questions:
 
@@ -14,4 +14,4 @@ Every feature should answer one of these questions:
 - What is the smallest reproducible failure?
 - What Kiro task fixes it?
 
-Runtime proof must be honest. A simulation transcript is not a recorded call. A generated replay is useful evidence, but it must be labeled as generated replay. Recorded-call wording is reserved for actual ElevenLabs conversation audio.
+Runtime source labels must be exact. A simulation transcript is not a recorded call. A generated replay is useful evidence, but it must be labeled as generated replay. Recorded-call wording is reserved for actual ElevenLabs conversation audio.

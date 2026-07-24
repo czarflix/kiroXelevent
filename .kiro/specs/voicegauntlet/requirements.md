@@ -23,7 +23,7 @@ VoiceGauntlet is a QA and red-team lab for ElevenLabs voice agents, built with K
 #### Acceptance Criteria
 
 1. WHEN requirements are parsed for normal live execution, THE SYSTEM SHALL generate one to three compact adversarial scenarios per requirement
-2. WHEN the public proof flow is shown, THE SYSTEM SHALL expose a 20-scenario synthetic coverage suite for the hook claim
+2. WHEN the public demo is shown, THE SYSTEM SHALL expose the documented 20-scenario synthetic coverage suite
 3. WHEN generating scenarios, THE SYSTEM SHALL include anger, prompt injection, tool failure, bilingual, privacy, ambiguity, chargeback, conversation repair, and escalation variants where relevant
 4. WHEN scenarios are generated, THE SYSTEM SHALL preserve the requirement ID on every scenario
 
@@ -79,7 +79,7 @@ VoiceGauntlet is a QA and red-team lab for ElevenLabs voice agents, built with K
 
 1. WHEN failures exist, THE SYSTEM SHALL generate Kiro-style hardening tasks in Markdown
 2. WHEN tasks are generated, THE SYSTEM SHALL include requirement ID, scenario, severity, evidence, and acceptance condition
-3. WHEN all runs pass, THE SYSTEM SHALL generate a green certification result
+3. WHEN all runs pass, THE SYSTEM SHALL report the evaluator pass count and each run's fixture or live source
 
 ### Requirement 7: LLM Refinement With Fallback
 

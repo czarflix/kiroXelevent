@@ -21,7 +21,7 @@ graph TD
 
 ## Components
 
-- `apps/web`: public demo, authenticated app surface, API routes, browser proof, and minimalist staged workflow.
+- `apps/web`: public demo, authenticated app surface, API routes, browser checks, and a staged workflow.
 - `packages/core`: deterministic parser, scenario generator, evaluator, shrinker, adapters, demo data.
 - `packages/mcp`: local MCP tools for suite generation, smoke runs, shrinking, task export, and run lookup.
 - `supabase`: migrations, RLS, storage buckets.
@@ -50,7 +50,7 @@ The UI is a minimalist staged flow: `Spec`, `Run`, `Failure`, `Forensic Replay`,
 
 Use a light, print-clean surface with warm off-white canvas, charcoal text, crisp borders, sparse controls, and one primary action per stage. The transcript and audio evidence are the hero. Secondary stats stay hidden behind inspectable details. Never show a fake waveform when no audio exists.
 
-Live Monitor is available only in the authenticated workspace. It is a live proof strip, not the bulk evaluator. The app plays synthetic caller audio locally, sends it as `user_audio_chunk` frames, plays ElevenLabs `audio_event.audio_base_64` chunks as they arrive, and checks for recorded-call metadata after close.
+Live Monitor is available only in the authenticated workspace. It is a live status view, not the bulk evaluator. The app plays synthetic caller audio locally, sends it as `user_audio_chunk` frames, plays ElevenLabs `audio_event.audio_base_64` chunks as they arrive, and checks for recorded-call metadata after close.
 
 ## Evidence Labels
 
@@ -58,4 +58,4 @@ Live Monitor is available only in the authenticated workspace. It is a live proo
 - `Live agent stream`: transient browser playback from Agent WebSocket chunks.
 - `Recorded ElevenLabs call`: actual conversation audio exists and is backed by conversation metadata.
 - `Generated replay`: two-speaker audio from a real transcript. The live replay route uses ElevenLabs Text to Dialogue when a valid key is configured.
-- `Demo fixture`: preverified public proof artifact, not a live run.
+- `Demo fixture`: checked-in deterministic data used by the public demo, not a live run.

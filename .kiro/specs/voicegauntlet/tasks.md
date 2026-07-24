@@ -14,7 +14,7 @@
 - [x] 12. Replace dense dark cockpit with minimalist staged UI flow
 - [x] 13. Add Groq server-side refinement with cache, concurrency 1, 429 retry, and deterministic fallback
 - [x] 14. Verify local MCP setup from `.kiro/settings/mcp.json` using `pnpm mcp`
-- [x] 15. Run package install, tests, typecheck, build, security scan, and browser proof
+- [x] 15. Run package install, tests, typecheck, build, security scan, and browser checks
 - [x] 16. Replace `/app` seeded shell with authenticated live workspace, agent/spec inputs, live simulation, replay, probe, export, and rerun controls
 - [x] 17. Persist live runs, turns, results, failures, audio artifacts, and fix exports to Supabase
 - [x] 18. Complete WebSocket audio probe path with signed URL, caller audio chunk, ping/pong, event capture, and conversation-audio fetch
@@ -22,6 +22,6 @@
 - [x] 20. Deploy to Vercel and verify public `/demo`, authenticated `/app`, and `/api/health`
 - [x] 21. Generate GPT image design mockup contact sheet and adapt Taste-style minimalist rules into UI steering
 - [x] 22. Add browser Live Monitor with signed URL, synthetic caller PCM, Agent WebSocket audio playback, live transcript, chunk counts, and recorded-call metadata check
-- [x] 23. Upgrade demo surface with 20 adversarial scenarios, Forensic Replay language, shrink confidence, and minimalist proof panels
+- [x] 23. Upgrade demo surface with 20 adversarial scenarios, Forensic Replay labels, shrink confidence, and compact result panels
 - [ ] 24. Record final 60-90 second submission video from production
 - [ ] 25. Post on X, LinkedIn, Instagram, and TikTok
